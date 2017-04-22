@@ -7,8 +7,28 @@
 #include <list>
 #include <stack>
 
+using std::to_string;
+
 namespace json
 {
+
+String::String(const std::string &str)
+    : Document()
+{
+    uint32_t length = str.size();
+    m_content << ObjectType::String;
+    m_content << length;
+    m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    m_content.move_to(0);
+}
+
+Integer::Integer(const integer_t i)
+    : Document()
+{
+    m_content << ObjectType::Integer;
+    m_content << i;
+    m_content.move_to(0);
+}
 
 class DocumentTraversal
 {
@@ -53,7 +73,7 @@ protected:
         case ObjectType::Null:
             break;
         default:
-            throw std::runtime_error("Unknown object type");
+            throw std::runtime_error("Document traversal failed: Unknown object type");
         }
     }
 };
@@ -153,7 +173,7 @@ private:
             case ObjectType::Null:
                 break;
             default:
-                throw std::runtime_error("Unknown object type");
+                throw std::runtime_error("Document diff failed: unknown object type");
             }
         }
     }
@@ -259,13 +279,13 @@ private:
             if(i < size1)
             {
                 has_first = true;
-                path1.push_back(std::to_string(i));
+                path1.push_back(to_string(i));
             }
 
             if(j < size2)
             {
                 has_second = true;
-                path2.push_back(std::to_string(j));
+                path2.push_back(to_string(j));
             }
 
             if(i == j && has_first && has_second)
@@ -341,6 +361,8 @@ public:
         return m_success;
     }
 
+    /// Return value indicates that element was found
+    /// Check m_success for successful completion of update
     bool parse_next(const std::string &key)
     {
         ObjectType type;
@@ -452,7 +474,7 @@ public:
                 return true;
             }
             else
-                throw std::runtime_error("cannot insert.");
+                return true;
         }
         else
         {
@@ -570,7 +592,7 @@ private:
 
         for(uint32_t i = 0; i < size; ++i)
         {
-            if(parse_next(std::to_string(i)))
+            if(parse_next(to_string(i)))
                 found = true;
         }
 
@@ -593,8 +615,8 @@ private:
     std::list<std::string> path;
 
     BitStream &m_doc;
-    bool m_success;
     const BitStream &m_other;
+    bool m_success;
 };
 
 class DocumentAdd : public DocumentTraversal
@@ -690,7 +712,7 @@ private:
             case ObjectType::Null:
                 break;
             default:
-                throw std::runtime_error("Unknown object type");
+                throw std::runtime_error("Document add failed: unknown object type");
             }
         }
     }
@@ -730,7 +752,7 @@ private:
 
         for(uint32_t i = 0; i < size; ++i)
         {
-            m_current_path.push_back(std::to_string(i));
+            m_current_path.push_back(to_string(i));
             parse_next();
             m_current_path.pop_back();
         }
@@ -740,10 +762,24 @@ private:
 class DocumentSearch : public DocumentTraversal
 {
 public:
-    DocumentSearch(const BitStream &data, const std::vector<std::string> &paths, bool write_path)
-        : m_target_paths(paths), m_write_path(write_path), m_found_count(0)
+    DocumentSearch(const Document &document, const std::vector<std::string> &paths, bool write_path)
+        : m_document(document), m_write_path(write_path), m_found_count(0)
     {
-        m_view.assign(data.data(), data.size(), true);
+        m_view.assign(m_document.data().data(), m_document.data().size(), true);
+
+        for(auto &path: paths)
+        {
+            size_t pos = 0, last_pos = 0;
+            std::vector<std::string> split_path;
+            while((pos = path.find_first_of('.', last_pos)) != std::string::npos)
+            {
+                split_path.push_back(path.substr(last_pos, pos-last_pos));
+                last_pos = pos+1;
+            }
+
+            split_path.push_back(path.substr(last_pos, pos-last_pos));
+            m_target_paths.push_back(split_path);
+        }
     }
 
     uint32_t do_search(BitStream &result)
@@ -761,23 +797,28 @@ private:
         bool on_path = false;
         bool on_target = false;
 
-        for(auto &target_path: m_target_paths)
+        for(auto &path: m_target_paths)
         {
-            auto len = std::min(current.size(), target_path.size());
+            const auto full_paths = path_strings(path, m_document);
 
-            if(len == 0)
+            for(auto &target_path: full_paths)
             {
-                on_path = true;
-            }
-            else if(target_path.compare(0, len, current) == 0)
-            {
-                if(target_path.size() == len)
-                {
-                    on_path = on_target = true;
-                }
-                else if(target_path[len] == '.')
+                auto len = std::min(current.size(), target_path.size());
+
+                if(len == 0)
                 {
                     on_path = true;
+                }
+                else if(target_path.compare(0, len, current) == 0)
+                {
+                    if(target_path.size() == len)
+                    {
+                        on_path = on_target = true;
+                    }
+                    else if(target_path[len] == '.')
+                    {
+                        on_path = true;
+                    }
                 }
             }
         }
@@ -841,13 +882,15 @@ private:
         case ObjectType::Null:
             break;
         default:
-            throw std::runtime_error("Unknown object type");
+            throw std::runtime_error("Document search failed: Unknown object type");
         }
     }
 
 private:
+    const json::Document &m_document;
+
     BitStream m_view;
-    const std::vector<std::string> m_target_paths; //FIXME preserve order
+    std::vector<std::vector<std::string>> m_target_paths; //FIXME preserve order
     std::vector<std::string> m_current_path;
     const bool m_write_path;
     uint32_t m_found_count;
@@ -894,7 +937,7 @@ private:
 
         for(uint32_t i = 0; i < size; ++i)
         {
-            m_current_path.push_back(std::to_string(i));
+            m_current_path.push_back(to_string(i));
             parse_next(writer);
             m_current_path.pop_back();
         }
@@ -913,6 +956,7 @@ Document::Document(const std::string &str)
 {
     Parser parser(str, m_content);
     parser.do_parse();
+    m_content.move_to(0);
 }
 
 #ifndef IS_ENCLAVE
@@ -991,7 +1035,7 @@ std::string Document::str() const
 
 Document::Document(const Document& parent, const std::vector<std::string> &paths, bool force)
 {
-    DocumentSearch search(parent.m_content, paths, true);
+    DocumentSearch search(parent, paths, true);
     uint32_t num_found = search.do_search(m_content);
 
     if(num_found != paths.size() && force)
@@ -1003,7 +1047,7 @@ Document::Document(const Document& parent, const std::string &path, bool force)
     std::vector<std::string> paths;
     paths.push_back(path);
 
-    DocumentSearch search(parent.m_content, paths, false);
+    DocumentSearch search(parent, paths, false);
     uint32_t num_found = search.do_search(m_content);
 
     if(num_found == 0 && force)
@@ -1060,6 +1104,62 @@ bool Document::add(const std::string &path, const json::Document &value)
         return false;
     }
 }
+
+std::vector<std::string> Document::get_keys() const
+{
+    BitStream view;
+    view.assign(m_content.data(), m_content.size(), true);
+
+    std::vector<std::string> result;
+
+    ObjectType type;
+    view >> type;
+
+    if(type != ObjectType::Map)
+        throw std::runtime_error("Document is not a map");
+
+    uint32_t byte_size, size;
+    view >> byte_size >> size;
+
+    for(uint32_t i = 0; i < size; ++i)
+    {
+        std::string key;
+        view >> key;
+        result.push_back(key);
+
+        ObjectType ctype;
+        view >> ctype;
+
+        switch(ctype)
+        {
+        case ObjectType::Binary:
+        case ObjectType::Map:
+        case ObjectType::Array:
+        case ObjectType::String:
+        {
+            uint32_t byte_size;
+            view >> byte_size;
+            view.move_by(byte_size);
+            break;
+        }
+        case ObjectType::Null:
+        case ObjectType::True:
+        case ObjectType::False:
+            break;
+        case ObjectType::Integer:
+            view.move_by(sizeof(json::integer_t));
+            break;
+        case ObjectType::Float:
+            view.move_by(sizeof(json::float_t));
+            break;
+        default:
+            throw std::runtime_error("Unknown document type!");
+        }
+    }
+
+    return result;
+}
+
 
 uint32_t Document::get_size() const
 {
@@ -1217,12 +1317,32 @@ std::vector<json::Diff*> Document::diff(const Document &other) const
     return diffs;
 }
 
+#ifndef IS_ENCLAVE
 json::Document Diff::as_document() const
+{
+    BitStream bstream;
+    compress(bstream, false);
+
+    uint8_t *data = nullptr;
+    uint32_t len = 0;
+
+    bstream.detach(data, len);
+
+    return json::Document(data, len, json::DocumentMode::ReadWrite);
+}
+#endif
+
+void Diff::compress(BitStream &bstream, bool write_size) const
 {
     BitStream view;
     view.assign(m_content.data(), m_content.size(), true);
 
-    BitStream bstream;
+    uint32_t size = 0;
+    auto size_pos = bstream.pos();
+
+    if(write_size)
+        bstream << size;
+
     Writer writer(bstream);
 
     writer.start_map("");
@@ -1257,12 +1377,13 @@ json::Document Diff::as_document() const
 
     writer.end_map();
 
-    uint8_t *data = nullptr;
-    uint32_t len = 0;
-
-    bstream.detach(data, len);
-
-    return json::Document(data, len, json::DocumentMode::ReadWrite);
+    if(write_size)
+    {
+        auto end = bstream.pos();
+        bstream.move_to(size_pos);
+        size = end - (size_pos + sizeof(size));
+        bstream << size;
+        bstream.move_to(end);
+    }
 }
-
 }

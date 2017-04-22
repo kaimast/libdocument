@@ -1,6 +1,8 @@
 #include "Parser.h"
 #include "json.h"
 
+using std::to_string;
+
 namespace json
 {
 
@@ -69,11 +71,11 @@ void Parser::parse(const std::string &key)
     }
 }
 
-bool Parser::check_string(const char *val)
+bool Parser::check_string(const std::string &val)
 {
     size_t c = 0;
 
-    while(c < strlen(val) && it != str.end())
+    while(c < val.size() && it != str.end())
     {
         if(val[c] != *it)
             return false;
@@ -82,7 +84,7 @@ bool Parser::check_string(const char *val)
         ++it;
     }
 
-    return c == strlen(val);
+    return c == val.size();
 }
 
 void Parser::parse_datetime(const std::string &key)
@@ -309,7 +311,7 @@ void Parser::parse_array(const std::string &key)
             skip_whitespace();
         }
 
-        parse(std::to_string(pos));
+        parse(to_string(pos));
         pos++;
     }
 

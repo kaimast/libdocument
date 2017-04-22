@@ -1,4 +1,4 @@
-#include "peerdb/json.h"
+#include "json/json.h"
 
 namespace json
 {
@@ -87,7 +87,7 @@ void Writer::check_end()
     if(m_mode.size() == 0)
     {
         m_mode.push(DONE);
-        m_result.move_to(0);
+        //m_result.move_to(0);
     }
 }
 

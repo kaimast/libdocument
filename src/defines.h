@@ -49,7 +49,8 @@ static inline char to_hex(uint8_t val)
     default: return 'x';
     }
 }
-inline std::string to_string(int i, int min = -1)
+
+inline std::string to_string(int i, int min)
 {
     char const digit[] = "0123456789";
     std::string out = "";

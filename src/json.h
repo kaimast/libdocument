@@ -1,17 +1,16 @@
 #pragma once
 
-#include "json/json.h"
-#include "json/BitStream.h"
-
 #include <string>
 #include <vector>
+
+#include "json/json.h"
 
 namespace json
 {
 
 enum KeywordType
 {
-    IN, WILDCARD, FALSE, TRUE, NIL
+    IN, WILDCARD, FALSE, TRUE, NIL, LESS_THAN, GREATER_THAN_EQUAL
 };
 
 constexpr const char* keyword(KeywordType type)
@@ -26,6 +25,10 @@ constexpr const char* keyword(KeywordType type)
         return "null";
     else if(type == IN)
         return "$in";
+    else if(type == LESS_THAN)
+        return "$lt";
+    else if(type == GREATER_THAN_EQUAL)
+        return "$gte";
     else
         return "";
 }

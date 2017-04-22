@@ -22,7 +22,6 @@ private:
     void handle_array(const std::string &key);
 };
 
-
 class PredicateChecker : public Iterator
 {
 public:
@@ -32,7 +31,6 @@ public:
 
     void push_path(const std::string &path);
     void push_key(const std::string &key);
-
     void pop_path();
 
     void handle_string(const std::string &key, const std::string &value) override;
@@ -48,20 +46,31 @@ public:
     void handle_binary(const std::string& key, const uint8_t *data, uint32_t len) override;
 
 private:
-    enum class predicate_mode {NORMAL, IN};
+    enum class predicate_mode {NORMAL, IN, LESS_THAN, GREATER_THAN_EQUAL};
 
     predicate_mode mode() const;
 
-    ObjectType m_in_type;
-    bool m_in_found;
+    bool m_pred_matches;
 
-    std::string m_in_value_str;
-    integer_t m_in_value_int;
-    json::float_t m_in_value_float;
+    struct pred_value
+    {
+        ObjectType type;
+
+        union
+        {
+            json::integer_t integer;
+            json::float_t floating;
+        };
+
+        std::string str;
+    };
+
+    std::vector<pred_value> m_pred_values;
 
     std::vector<predicate_mode> m_mode;
-
     std::vector<std::string> m_path;
+    std::stack<size_t> m_path_sizes;
+
     const json::Document &m_document;
     bool m_matched;
 };
@@ -95,8 +104,8 @@ public:
 private:
     enum mode_type { FIRST_IN_MAP, IN_MAP, FIRST_IN_ARRAY, IN_ARRAY };
     std::stack<mode_type> mode;
-
     std::string result;
 };
 
 }
+

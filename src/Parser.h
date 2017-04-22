@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "json/json.h"
 
 namespace json
@@ -29,7 +28,7 @@ private:
 
     std::string read_string();
 
-    bool check_string(const char *s);
+    bool check_string(const std::string &str);
 
     const std::string &str;
     std::string::const_iterator it;

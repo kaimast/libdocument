@@ -8,11 +8,9 @@
 #include <vector>
 #include <time.h>
 
-#ifndef IS_ENCLAVE
 #include <ostream>
-#endif
 
-#include "BitStream.h"
+#include "json/BitStream.h"
 
 namespace json
 {
@@ -82,6 +80,8 @@ public:
 
     json::Document as_document() const;
 
+    void compress(BitStream &bstream, bool write_size = true) const;
+
 private:
     BitStream m_content;
 };
@@ -105,9 +105,7 @@ public:
 class Document
 {
 public:
-#ifndef IS_ENCLAVE
     Document(Document &&other);
-#endif
 
     /// Filter parent by a set of paths
     Document(const Document &parent, const std::vector<std::string> &paths, bool force = false);
@@ -145,6 +143,8 @@ public:
 
     bool add(const std::string &path, const json::Document &value);
 
+    std::vector<std::string> get_keys() const;
+
     bool matches_predicates(const json::Document &predicates) const;
 
     void iterate(Iterator &iterator) const;
@@ -161,9 +161,7 @@ public:
         m_content.detach(data, len);
     }
 
-#ifndef IS_ENCLAVE
     Document duplicate() const;
-#endif
 
     bool insert(const std::string &path, const json::Document &doc);
 
@@ -193,14 +191,7 @@ protected:
 class String : public Document
 {
 public:
-    String(const std::string &str)
-        : Document()
-    {
-        uint32_t length = str.size();
-        m_content << ObjectType::String;
-        m_content << length;
-        m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
-    }
+    String(const std::string &str);
 };
 
 class Binary : public Document
@@ -223,6 +214,12 @@ public:
         m_content.write_raw_data(bstream.data(), bstream.size());
         m_content.move_to(0);
     }
+};
+
+class Integer : public Document
+{
+public:
+    Integer(integer_t i);
 };
 
 class Writer
@@ -272,9 +269,7 @@ inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
     return bs;
 }
 
-#ifndef IS_ENCLAVE
 inline std::ostream& operator<<(std::ostream &os, const json::Document &doc)
 {
     return os << doc.str();
 }
-#endif
