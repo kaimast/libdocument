@@ -7,6 +7,8 @@ namespace json
 class Iterator
 {
 public:
+    virtual ~Iterator() {}
+
     virtual void handle_string(const std::string &key, const std::string &str) = 0;
     virtual void handle_integer(const std::string &key, const integer_t value) = 0;
     virtual void handle_float(const std::string &key, const float_t value) = 0;

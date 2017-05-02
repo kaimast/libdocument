@@ -58,7 +58,7 @@ void PredicateChecker::push_key(const std::string &key)
 
         for(auto &path: path_strings(m_path, m_document))
         {
-            json::Document view(m_document, path);
+            json::Document view(m_document, path, false);
 
             pred_value val;
             val.type = view.get_type();
@@ -94,7 +94,7 @@ void PredicateChecker::push_key(const std::string &key)
 
         for(auto &path: path_strings(m_path, m_document))
         {
-            json::Document view(m_document, path);
+            json::Document view(m_document, path, false);
 
             pred_value val;
             val.type = view.get_type();
@@ -164,7 +164,7 @@ void PredicateChecker::handle_string(const std::string &key, const std::string &
 
         for(auto &path: path_strings(m_path, m_document))
         {
-            Document view(m_document, path);
+            Document view(m_document, path, false);
 
             if(view.empty() || view.get_type() != ObjectType::String)
             {
@@ -201,7 +201,7 @@ void PredicateChecker::handle_integer(const std::string &key, const integer_t va
 
         for(auto &path : path_strings(m_path, m_document))
         {
-            Document view(m_document, path);
+            Document view(m_document, path, false);
 
             if(view.empty() || view.get_type() != ObjectType::Integer)
             {
@@ -254,7 +254,7 @@ void PredicateChecker::handle_float(const std::string &key, const json::float_t 
 
     if(mode() == predicate_mode::NORMAL)
     {
-        Document view(m_document, path_string(m_path));
+        Document view(m_document, path_string(m_path), false);
 
         if(view.empty() || view.get_type() != ObjectType::Float)
         {
@@ -310,7 +310,7 @@ void PredicateChecker::handle_boolean(const std::string &key, const bool value)
 {
     push_path(key);
 
-    Document view(m_document, path_string(m_path));
+    Document view(m_document, path_string(m_path), false);
 
     if(view.empty() || (view.get_type() != ObjectType::True && view.get_type() != ObjectType::False))
     {
