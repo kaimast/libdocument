@@ -334,6 +334,7 @@ private:
         }
     }
 };
+
 class DocumentMerger : public DocumentTraversal
 {
 public:
@@ -959,12 +960,10 @@ Document::Document(const std::string &str)
     m_content.move_to(0);
 }
 
-#ifndef IS_ENCLAVE
 Document::Document(Document &&other)
     : m_content(std::move(other.m_content))
 {
 }
-#endif
 
 Document::Document(BitStream &data)
 {
@@ -998,12 +997,10 @@ int64_t Document::hash() const
     return m_content.hash();
 }
 
-#ifndef IS_ENCLAVE
 Document Document::duplicate() const
 {
     return Document(m_content.data(), m_content.size(), DocumentMode::Copy);
 }
-#endif
 
 void Document::copy(const Document &other)
 {

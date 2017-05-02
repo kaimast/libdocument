@@ -4,8 +4,17 @@ namespace json
 {
 
 Writer::Writer(BitStream &result)
-    : m_result(result)
+    : m_result_ptr(nullptr), m_result(result)
 {
+}
+
+Writer::Writer()
+    : m_result_ptr(new BitStream), m_result(*m_result_ptr)
+{}
+
+Writer::~Writer()
+{
+    delete m_result_ptr;
 }
 
 void Writer::start_array(const std::string &key)
