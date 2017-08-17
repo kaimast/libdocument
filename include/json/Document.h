@@ -4,6 +4,10 @@
 #include "json/Diff.h"
 #include "json/Iterator.h"
 
+#ifdef USE_GEO
+#include "geo/vector2.h"
+#endif
+
 namespace json
 {
 
@@ -16,7 +20,8 @@ public:
     Document(const Document &parent, const std::vector<std::string> &paths, bool force = false);
 
     /// Create a view on a subset of the document
-    Document(const Document &parent, const std::string &path, bool force = true);
+    Document(const Document &parent, const uint32_t pos);
+    Document(const Document &parent, const std::string &path, bool force = false);
 
     explicit Document(BitStream &data);
     explicit Document(const std::string& str);
@@ -26,8 +31,13 @@ public:
 
     ~Document();
 
+    void assign(BitStream &&data)
+    {
+        m_content = std::move(data);
+    }
+
     /// Because we don't have move semantics...
-    void copy(const Document &other);
+    void copy(const Document &other, bool ignore_read_only = false);
 
     bool empty() const
     {
@@ -39,6 +49,10 @@ public:
     /// Get the number of objects
     uint32_t get_size() const;
 
+#ifdef USE_GEO
+    geo::vector2d as_vector2() const;
+#endif
+
     std::string as_string() const;
     integer_t as_integer() const;
     float_t as_float() const;
@@ -48,6 +62,7 @@ public:
 
     bool add(const std::string &path, const json::Document &value);
 
+    std::vector<std::string> get_string_values() const;
     std::vector<std::string> get_keys() const;
 
     bool matches_predicates(const json::Document &predicates) const;
@@ -57,6 +72,21 @@ public:
     const BitStream& data() const
     {
         return m_content;
+    }
+
+    BitStream& data()
+    {
+        return m_content;
+    }
+
+    void operator=(Document &&other)
+    {
+        m_content = std::move(other.m_content);
+    }
+
+    void clear()
+    {
+        m_content.clear();
     }
 
     int64_t hash() const;
@@ -85,7 +115,7 @@ public:
         return m_content.size();
     }
 
-    std::vector<json::Diff*> diff(const Document &other) const;
+    Diffs diff(const Document &other) const;
 
 protected:
     Document() {}
@@ -133,10 +163,18 @@ inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
     return bs;
 }
 
+inline BitStream& operator>>(BitStream &bs, json::Document& doc)
+{
+    doc = json::Document(bs);
+    return bs;
+}
+
+#ifndef IS_ENCLAVE
 inline std::ostream& operator<<(std::ostream &os, const json::Document &doc)
 {
     return os << doc.str();
 }
+#endif
 
 }
 

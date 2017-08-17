@@ -300,9 +300,7 @@ TEST(JsonTest, diffs)
     auto diffs = doc1.diff(doc2);
 
     EXPECT_EQ(diffs.size(), 1);
-    EXPECT_EQ(diffs[0]->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
-
-    delete diffs[0];
+    EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
 }
 
 TEST(JsonTest, compress_diffs)
@@ -313,15 +311,12 @@ TEST(JsonTest, compress_diffs)
     auto diffs = doc1.diff(doc2);
 
     BitStream bstream;
-    auto diff = diffs[0];
-    diff->compress(bstream, true);
+    diffs.begin()->compress(bstream, true);
 
     bstream.move_to(0);
 
     json::Document doc(bstream);
     EXPECT_EQ(doc, json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
-
-    delete diff;
 }
 
 TEST(JsonTest, diffs_str)
@@ -332,9 +327,7 @@ TEST(JsonTest, diffs_str)
     auto diffs = doc1.diff(doc2);
 
     EXPECT_EQ(diffs.size(), 1);
-    EXPECT_EQ(diffs[0]->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":\"we go\"}"));
-
-    delete diffs[0];
+    EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":\"we go\"}"));
 }
 
 TEST(JsonTest, diff_deleted)
@@ -345,9 +338,7 @@ TEST(JsonTest, diff_deleted)
     auto diffs = doc1.diff(doc2);
 
     EXPECT_EQ(diffs.size(), 1);
-    EXPECT_EQ(diffs[0]->as_document(), json::Document("{\"type\":\"deleted\",\"path\":\"a\"}"));
-
-    delete diffs[0];
+    EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"deleted\",\"path\":\"a\"}"));
 }
 
 TEST(JsonTest, diff_added)
@@ -358,9 +349,7 @@ TEST(JsonTest, diff_added)
     auto diffs = doc1.diff(doc2);
 
     EXPECT_EQ(diffs.size(), 1);
-    EXPECT_EQ(diffs[0]->as_document(), json::Document("{\"type\":\"added\",\"path\":\"b\",\"value\":\"we go\"}"));
-
-    delete diffs[0];
+    EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"b\",\"value\":\"we go\"}"));
 }
 
 TEST(JsonTest, diff_added_array)
@@ -371,9 +360,7 @@ TEST(JsonTest, diff_added_array)
     auto diffs = doc1.diff(doc2);
 
     EXPECT_EQ(diffs.size(), 1);
-    EXPECT_EQ(diffs[0]->as_document(), json::Document("{\"type\":\"added\",\"path\":\"1\",\"value\":\"we go\"}"));
-
-    delete diffs[0];
+    EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"1\",\"value\":\"we go\"}"));
 }
 
 TEST(JsonTest, cant_put_path)

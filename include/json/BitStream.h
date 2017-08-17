@@ -28,7 +28,7 @@ public:
     BitStream(const uint8_t* data, const uint32_t length)
         : m_pos(0), m_size(0), m_alloc_size(BS_MIN_REALLOC), m_data(nullptr), m_read_only(false)
     {
-        m_data = new uint8_t[m_alloc_size];
+        m_data = reinterpret_cast<uint8_t*>(malloc(m_alloc_size));
         write_raw_data(data, length, false);
     }
 
@@ -42,10 +42,52 @@ public:
 
     ~BitStream()
     {
+        clear();
+    }
+
+    void pre_alloc(uint32_t size)
+    {
+        if(size < m_alloc_size)
+            throw std::runtime_error("Can only increase alloc size");
+
+        m_alloc_size = size;
+        m_data = reinterpret_cast<uint8_t*>(realloc(m_data, m_alloc_size));
+
+        if(m_data == nullptr)
+            throw std::runtime_error("Failed to allocated data");
+    }
+
+    void copy(const BitStream &other, bool ignore_read_only = false)
+    {
+        clear();
+
+        if(other.m_read_only && !ignore_read_only)
+        {
+            resize(0);
+            m_read_only = true;
+            m_data = other.m_data;
+            m_size = m_alloc_size = other.m_size;
+        }
+        else
+        {
+            m_read_only = false;
+            resize(0);
+            move_to(0);
+            write_raw_data(other.data(), other.size());
+            move_to(0);
+        }
+    }
+
+    void clear()
+    {
         if(m_data != nullptr && !m_read_only)
         {
-            delete []m_data;
+            free(m_data);
         }
+
+        m_read_only = false;
+        m_data = nullptr;
+        m_size = m_alloc_size = 0;
     }
 
     BitStream duplicate() const
@@ -53,12 +95,16 @@ public:
         return BitStream(m_data, m_size);
     }
 
-    bool operator==(const BitStream &other) const
+    void operator=(BitStream &&other)
     {
-        if(m_size != other.m_size)
-            return false;
+        m_data = other.m_data;
+        m_read_only = other.m_read_only;
+        m_pos = other.m_pos;
+        m_size = other.m_size;
+        m_alloc_size = other.m_alloc_size;
 
-        return memcmp(other.m_data, this->m_data, m_size) == 0;
+        other.m_data = nullptr;
+        other.m_pos = other.m_size = other.m_alloc_size = 0;
     }
 
     void resize(uint32_t new_size)
@@ -69,7 +115,8 @@ public:
         if(m_data == nullptr)
         {
             m_size = m_alloc_size = new_size;
-            m_data = new uint8_t[new_size];
+            if(new_size > 0)
+                m_data = reinterpret_cast<uint8_t*>(malloc(new_size));
             return;
         }
 
@@ -91,12 +138,7 @@ public:
         assert(new_size > m_size);
 
         uint32_t step = std::max(BS_MIN_REALLOC, new_size - m_size);
-        m_alloc_size = m_alloc_size+step;
-
-        m_data = reinterpret_cast<uint8_t*>(realloc(m_data, m_alloc_size));
-
-        if(m_data == nullptr)
-            throw std::runtime_error("Failed to allocated data");
+        pre_alloc(m_alloc_size+step);
 
         m_size = new_size;
         assert(m_size <= m_alloc_size);
@@ -186,7 +228,7 @@ public:
     BitStream& operator>>(T& data)
     {
         if(m_pos+sizeof(T) > size())
-           throw std::runtime_error("Cannot read from BitStream. Already at the end.");
+           throw std::runtime_error("Cannot read from BitStream: Already at the end.");
 
         memcpy(&data, &m_data[m_pos], sizeof(T));
         m_pos += sizeof(T);
@@ -270,9 +312,19 @@ public:
         return m_size;
     }
 
+    bool empty() const
+    {
+        return m_size == 0;
+    }
+
     size_t remaining_size() const
     {
         return size() - pos();
+    }
+
+    size_t allocated_size() const
+    {
+        return m_alloc_size;
     }
 
     /**
@@ -293,22 +345,27 @@ public:
         return m_pos;
     }
 
-    bool move_to(uint32_t pos)
+    bool move_to(uint32_t pos, bool allocate = false)
     {
         if(pos > m_size)
-           return false;
+        {
+            if(allocate)
+                resize(pos+1);
+            else
+                return false;
+        }
 
          m_pos = pos;
          return true;
     }
 
-    bool move_by(int32_t offset)
+    bool move_by(int32_t offset, bool allocate = false)
     {
         // make sure we don't overflow
         if(offset < 0 && static_cast<uint32_t>((-1)*offset) > m_pos)
-            return false;
+            throw std::runtime_error("Can't move. Would overflow buffer!");
 
-        return move_to(m_pos + offset);
+        return move_to(m_pos + offset, allocate);
     }
 
     /**
@@ -435,7 +492,7 @@ template<> inline
 BitStream& BitStream::operator>> <char>(char& data)
 {
     if(at_end())
-        throw std::runtime_error("Already at end");
+        throw std::runtime_error("Cannot read more: Already at end");
 
     data = m_data[m_pos];
     m_pos++;
@@ -461,3 +518,13 @@ BitStream& BitStream::operator>> <std::string>(std::string& data)
 
     return *this;
 }
+
+inline bool operator==(const BitStream &first, const BitStream &second)
+{
+    if(first.size() != second.size())
+        return false;
+    else
+        return memcmp(first.data(), second.data(), first.size()) == 0;
+}
+
+ 

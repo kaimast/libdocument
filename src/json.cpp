@@ -32,11 +32,18 @@ Integer::Integer(const integer_t i)
 
 class DocumentTraversal
 {
-protected:
-    void skip_next(ObjectType type, BitStream &view)
+public:
+    static void skip_next(ObjectType type, BitStream &view)
     {
         switch(type)
         {
+#ifdef USE_GEO
+        case ObjectType::Vector2:
+        {
+            view.move_by(sizeof(geo::vector2d));
+            break;
+        }
+#endif
         case ObjectType::Binary:
         {
             uint32_t size = 0;
@@ -87,13 +94,13 @@ public:
         view2.assign(const_cast<uint8_t*>(data2.data()), data2.size(), true);
     }
 
-    void create_diffs(std::vector<json::Diff*> &diffs)
+    void create_diffs(Diffs &diffs)
     {
         parse_next(diffs, false);
     }
 
 private:
-    void parse_next(std::vector<json::Diff*> &diffs, bool inside_diff)
+    void parse_next(Diffs &diffs, bool inside_diff)
     {
         assert(path1 == path2);
 
@@ -109,8 +116,7 @@ private:
             skip_next(type2, view2);
             uint32_t end = view2.pos();
 
-            auto diff = new Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start);
-            diffs.push_back(diff);
+            diffs.emplace_back(Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start));
         }
         else
         {
@@ -127,8 +133,7 @@ private:
 
                 if(!inside_diff && str1 != str2)
                 {
-                    auto diff = new Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start));
                 }
                 break;
             }
@@ -142,8 +147,7 @@ private:
 
                 if(!inside_diff && i1 != i2)
                 {
-                    auto diff = new Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start));
                 }
                 break;
             }
@@ -157,8 +161,7 @@ private:
 
                 if(!inside_diff && d1 != d2)
                 {
-                    auto diff = new Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Modified, path_string(path1), &view2.data()[start], end-start));
                 }
                 break;
             }
@@ -183,7 +186,7 @@ private:
     std::vector<std::string> path1;
     std::vector<std::string> path2;
 
-    void parse_map(std::vector<Diff*> &diffs, bool inside_diff)
+    void parse_map(Diffs &diffs, bool inside_diff)
     {
         uint32_t byte_size1 = 0, byte_size2 = 0;
         view1 >> byte_size1;
@@ -229,8 +232,7 @@ private:
                     skip_next(type, view1);
                     uint32_t end = view1.pos();
 
-                    auto diff = new Diff(DiffType::Deleted, path_string(path1), &view1.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Deleted, path_string(path1), &view1.data()[start], end-start));
                 }
 
                 if(j < size2)
@@ -242,8 +244,7 @@ private:
                     skip_next(type, view2);
                     uint32_t end = view2.pos();
 
-                    auto diff = new Diff(DiffType::Added, path_string(path2), &view2.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Added, path_string(path2), &view2.data()[start], end-start));
                 }
             }
 
@@ -260,7 +261,7 @@ private:
         }
     }
 
-    void parse_array(std::vector<Diff*> &diffs, bool inside_diff)
+    void parse_array(Diffs &diffs, bool inside_diff)
     {
         uint32_t byte_size1 = 0, byte_size2 = 0;
         view1 >> byte_size1;
@@ -303,8 +304,7 @@ private:
                     skip_next(type, view1);
                     uint32_t end = view1.pos();
 
-                    auto diff = new Diff(DiffType::Deleted, path_string(path1), &view1.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Deleted, path_string(path1), &view1.data()[start], end-start));
                 }
 
                 if(has_second)
@@ -316,8 +316,7 @@ private:
                     skip_next(type, view2);
                     uint32_t end = view2.pos();
 
-                    auto diff = new Diff(DiffType::Added, path_string(path2), &view2.data()[start], end-start);
-                    diffs.push_back(diff);
+                    diffs.emplace_back(Diff(DiffType::Added, path_string(path2), &view2.data()[start], end-start));
                 }
             }
 
@@ -878,6 +877,13 @@ private:
         case ObjectType::Array:
             parse_array(writer);
             break;
+        case ObjectType::Binary:
+        {
+            uint32_t len = 0;
+            m_view >> len;
+            m_view.move_by(len);
+            break;
+        }
         case ObjectType::True:
         case ObjectType::False:
         case ObjectType::Null:
@@ -954,10 +960,14 @@ Document::~Document()
 }
 
 Document::Document(const std::string &str)
+    : m_content()
 {
-    Parser parser(str, m_content);
-    parser.do_parse();
-    m_content.move_to(0);
+    if(str != "")
+    {
+        Parser parser(str, m_content);
+        parser.do_parse();
+        m_content.move_to(0);
+    }
 }
 
 Document::Document(Document &&other)
@@ -966,6 +976,7 @@ Document::Document(Document &&other)
 }
 
 Document::Document(BitStream &data)
+    : m_content()
 {
     uint32_t size = 0;
     data >> size;
@@ -1002,12 +1013,9 @@ Document Document::duplicate() const
     return Document(m_content.data(), m_content.size(), DocumentMode::Copy);
 }
 
-void Document::copy(const Document &other)
+void Document::copy(const Document &other, bool ignore_read_only)
 {
-    m_content.resize(0);
-    m_content.move_to(0);
-    m_content.write_raw_data(other.m_content.data(), other.m_content.size());
-    m_content.move_to(0);
+    m_content.copy(other.m_content, ignore_read_only);
 }
 
 void Document::compress(BitStream &bstream) const
@@ -1037,6 +1045,41 @@ Document::Document(const Document& parent, const std::vector<std::string> &paths
 
     if(num_found != paths.size() && force)
         throw std::runtime_error("Not all paths were found");
+}
+
+Document::Document(const Document &parent, const uint32_t pos)
+    : m_content()
+{
+    BitStream view;
+    view.assign(parent.m_content.data(), parent.m_content.size(), true);
+
+    ObjectType type;
+    view >> type;
+
+    if(type != ObjectType::Array)
+        throw std::runtime_error("Not an array");
+
+    uint32_t byte_size, size;
+    view >> byte_size >> size;
+
+    if(pos >= size)
+        throw std::runtime_error("out of array bounds!");
+
+    for(uint32_t i = 0; i < pos; ++i)
+    {
+        ObjectType ot;
+        view >> ot;
+        DocumentTraversal::skip_next(ot, view);
+    }
+
+    auto start = view.current();
+
+    ObjectType ot;
+    view >> ot;
+    DocumentTraversal::skip_next(ot, view);
+    auto end = view.current();
+
+    m_content.assign(start, end-start, true);
 }
 
 Document::Document(const Document& parent, const std::string &path, bool force)
@@ -1100,6 +1143,45 @@ bool Document::add(const std::string &path, const json::Document &value)
         m_content.move_to(0);
         return false;
     }
+}
+
+std::vector<std::string> Document::get_string_values() const
+{
+    BitStream view;
+    view.assign(m_content.data(), m_content.size(), true);
+
+    std::vector<std::string> result;
+
+    ObjectType type;
+    view >> type;
+
+    if(type != ObjectType::Map && type != ObjectType::Array)
+        throw std::runtime_error("Document is not a map or array");
+
+    uint32_t byte_size, size;
+    view >> byte_size >> size;
+
+    for(uint32_t i = 0; i < size; ++i)
+    {
+        if(type == ObjectType::Map)
+        {
+            std::string key;
+            view >> key;\
+        }
+
+        ObjectType ctype;
+        view >> ctype;
+
+        if(ctype != ObjectType::String)
+            throw std::runtime_error("Value is not a string");
+
+        std::string value;
+        view >> value;
+
+        result.push_back(value);
+    }
+
+    return result;
 }
 
 std::vector<std::string> Document::get_keys() const
@@ -1290,6 +1372,27 @@ bool Document::as_boolean() const
         throw std::runtime_error("Not a boolean!");
 }
 
+#ifdef USE_GEO
+geo::vector2d Document::as_vector2() const
+{
+    BitStream view;
+
+    view.assign(m_content.data(), m_content.size(), true);
+
+    ObjectType type;
+    view >> type;
+
+    if(type != ObjectType::Vector2)
+        throw std::runtime_error("Not a vector");
+
+    geo::vector2d res;
+    view >> res.X;
+    view >> res.Y;
+
+    return res;
+}
+#endif
+
 std::string Document::as_string() const
 {
     BitStream view;
@@ -1306,15 +1409,14 @@ std::string Document::as_string() const
     return str;
 }
 
-std::vector<json::Diff*> Document::diff(const Document &other) const
+Diffs Document::diff(const Document &other) const
 {
-    std::vector<json::Diff*> diffs;
+    Diffs diffs;
     DocumentDiffs runner(m_content, other.m_content);
     runner.create_diffs(diffs);
     return diffs;
 }
 
-#ifndef IS_ENCLAVE
 json::Document Diff::as_document() const
 {
     BitStream bstream;
@@ -1327,7 +1429,6 @@ json::Document Diff::as_document() const
 
     return json::Document(data, len, json::DocumentMode::ReadWrite);
 }
-#endif
 
 void Diff::compress(BitStream &bstream, bool write_size) const
 {
@@ -1376,7 +1477,7 @@ void Diff::compress(BitStream &bstream, bool write_size) const
 
     if(write_size)
     {
-        auto end = bstream.pos();
+        auto end = bstream.size();
         bstream.move_to(size_pos);
         size = end - (size_pos + sizeof(size));
         bstream << size;

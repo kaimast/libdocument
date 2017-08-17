@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defines.h"
+#include <list>
 
 namespace json
 {
@@ -18,6 +19,10 @@ public:
     Diff(DiffType type, const std::string& path, const uint8_t* value, uint32_t length);
     Diff(const Diff &other) = delete;
 
+    Diff(Diff &&other)
+        : m_content(std::move(other.m_content))
+    {}
+
     const BitStream& content() const
     {
         return m_content;
@@ -30,5 +35,7 @@ public:
 private:
     BitStream m_content;
 };
+
+typedef std::list<Diff> Diffs;
 
 }

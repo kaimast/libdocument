@@ -1,5 +1,6 @@
 #pragma once
 
+#include <geo/vector2.h>
 #include "defines.h"
 
 namespace json
@@ -27,6 +28,7 @@ public:
         write_raw_data(key, other.data().data(), other.data().size());
     }
 
+    void write_vector2(const std::string &key, const geo::vector2d &vec);
     void write_null(const std::string &key);
     void write_boolean(const std::string &key, const bool boolean);
     void write_datetime(const std::string &key, const tm &value);

@@ -235,12 +235,7 @@ void Parser::parse_number(const std::string &key)
         ++it2;
     }
 
-#ifdef IS_ENCLAVE
-    const char *start = it;
-#else
     const char *start = it.base();
-#endif
-
     char *end = nullptr;
 
     if(is_double)
