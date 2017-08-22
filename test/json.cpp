@@ -1,4 +1,4 @@
-#include "peerdb/json.h"
+#include <json/json.h>
 #include <gtest/gtest.h>
 
 using namespace json;

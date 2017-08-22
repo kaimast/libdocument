@@ -13,7 +13,11 @@ enum KeywordType
     IN, WILDCARD, FALSE, TRUE, NIL, LESS_THAN, GREATER_THAN_EQUAL
 };
 
+#ifdef IS_ENCLAVE
+inline const char* keyword(KeywordType type)
+#else
 constexpr const char* keyword(KeywordType type)
+#endif
 {
     if(type == TRUE)
         return "true";

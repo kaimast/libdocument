@@ -107,12 +107,20 @@ void Writer::write_raw_data(const std::string &key, const uint8_t *data, uint32_
     check_end();
 }
 
+void Writer::write_binary(const std::string &key, const BitStream &data)
+{
+    m_result << ObjectType::Binary << data.size();
+    m_result.write_raw_data(data.data(), data.size());
+}
+
+#ifdef USE_GEO
 void Writer::write_vector2(const std::string &key, const geo::vector2d &vec)
 {
     handle_key(key);
     m_result << ObjectType::Vector2 << vec.X << vec.Y;
     check_end();
 }
+#endif
 
 void Writer::write_float(const std::string &key, const double &val)
 {

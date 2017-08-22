@@ -157,6 +157,9 @@ public:
     Integer(integer_t i);
 };
 
+}
+
+
 inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
 {
     doc.compress(bs);
@@ -176,5 +179,4 @@ inline std::ostream& operator<<(std::ostream &os, const json::Document &doc)
 }
 #endif
 
-}
 

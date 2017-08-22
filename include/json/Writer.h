@@ -1,6 +1,9 @@
 #pragma once
 
+#ifdef USE_GEO
 #include <geo/vector2.h>
+#endif
+
 #include "defines.h"
 
 namespace json
@@ -28,8 +31,12 @@ public:
         write_raw_data(key, other.data().data(), other.data().size());
     }
 
+#ifdef USE_GEO
     void write_vector2(const std::string &key, const geo::vector2d &vec);
+#endif
+
     void write_null(const std::string &key);
+    void write_binary(const std::string &key, const BitStream &binary);
     void write_boolean(const std::string &key, const bool boolean);
     void write_datetime(const std::string &key, const tm &value);
     void write_integer(const std::string &key, const integer_t &value);
