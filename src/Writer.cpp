@@ -109,7 +109,8 @@ void Writer::write_raw_data(const std::string &key, const uint8_t *data, uint32_
 
 void Writer::write_binary(const std::string &key, const BitStream &data)
 {
-    m_result << ObjectType::Binary << data.size();
+    handle_key(key);
+    m_result << ObjectType::Binary << static_cast<uint32_t>(data.size());
     m_result.write_raw_data(data.data(), data.size());
 }
 

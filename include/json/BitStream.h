@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <stdint.h>
 #include <cstring>
 #include <math.h>
@@ -204,9 +205,12 @@ public:
      *
      * @note data is expected not to be a pointer. you might have to dereference it
      */
-    template<typename T>
+
+    template<typename T>    
     BitStream& operator<<(const T& data)
     {
+        static_assert(std::is_pod<T>());
+
         if(m_pos + sizeof(T) >= size())
         {
             uint32_t newSize = m_pos + sizeof(T);
