@@ -488,7 +488,8 @@ IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator
 
 void IterationEngine::run()
 {
-    parse_next("");
+    if(view.size() > 0)
+        parse_next("");
 }
 
 void IterationEngine::parse_next(const std::string &key)
