@@ -5,7 +5,7 @@ inc_dirs = include_directories('/usr/local/include', 'include/')
 gtest = dependency('gtest', main : true)
 gmock = dependency('gmock')
 
-cpp_files =  ['src/Parser.cpp', 'src/Iterator.cpp', 'src/Writer.cpp', 'src/json.cpp']
+cpp_files =  ['src/Parser.cpp', 'src/Iterator.cpp', 'src/Writer.cpp', 'src/Document.cpp']
 
 doc = shared_library('document', cpp_files, include_directories: inc_dirs, install: true)
 doc_dep = declare_dependency(link_with: doc)
