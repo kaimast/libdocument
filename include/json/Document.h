@@ -1,6 +1,8 @@
 #pragma once
 
 #include "defines.h"
+
+#include "json/BitStream.h"
 #include "json/Diff.h"
 #include "json/Iterator.h"
 
@@ -158,7 +160,6 @@ public:
 };
 
 }
-
 
 inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
 {

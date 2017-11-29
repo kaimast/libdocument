@@ -31,7 +31,11 @@ public:
     uint32_t do_search(BitStream &result)
     {
         json::Writer writer(result);
-        parse_next(writer);
+
+        if(!m_document.empty())
+        {
+            parse_next(writer);
+        }
 
         return m_found_count;
     }

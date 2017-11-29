@@ -1,7 +1,9 @@
 #pragma once
 
-#include "defines.h"
 #include <list>
+
+#include "defines.h"
+#include "BitStream.h"
 
 namespace json
 {
