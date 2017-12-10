@@ -31,10 +31,6 @@ public:
         write_raw_data(key, other.data().data(), other.data().size());
     }
 
-#ifdef USE_GEO
-    void write_vector2(const std::string &key, const geo::vector2d &vec);
-#endif
-
     void write_null(const std::string &key);
     void write_binary(const std::string &key, const BitStream &binary);
     void write_boolean(const std::string &key, const bool boolean);
@@ -42,6 +38,10 @@ public:
     void write_integer(const std::string &key, const integer_t &value);
     void write_string(const std::string &key, const std::string &value);
     void write_float(const std::string &key, const float_t &value);
+
+#ifdef USE_GEO
+    void write_vector2(const std::string &key, const geo::vector2d &vec);
+#endif
 
     json::Document make_document()
     {
