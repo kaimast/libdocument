@@ -105,6 +105,7 @@ public:
     void compress(BitStream &bstream) const;
 
     std::string str() const;
+    std::string pretty_str(int indent) const;
 
     bool operator==(const Document& other) const
     {

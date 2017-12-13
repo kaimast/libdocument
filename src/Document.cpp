@@ -97,6 +97,13 @@ std::string Document::str() const
     return printer.get_result();
 }
 
+std::string Document::pretty_str(int indent) const
+{
+    json::DocumentPrettyPrinter printer(indent);
+    iterate(printer);
+    return printer.get_result();
+}
+
 Document::Document(const Document& parent, const std::vector<std::string> &paths, bool force)
 {
     DocumentSearch search(parent, paths, true);

@@ -107,5 +107,40 @@ private:
     std::string result;
 };
 
+class DocumentPrettyPrinter : public json::Iterator
+{
+public:
+    DocumentPrettyPrinter(int indent);
+    void handle_string(const std::string &key, const std::string &str) override;
+    void handle_integer(const std::string &key, const json::integer_t value) override;
+    void handle_float(const std::string &key, const json::float_t value) override;
+    void handle_map_start(const std::string &key) override;
+    void handle_boolean(const std::string &key, const bool value) override;
+    void handle_null(const std::string &key) override;
+    void handle_map_end() override;
+    void handle_array_start(const std::string &key) override;
+    void handle_array_end() override;
+    void handle_binary(const std::string &key, const uint8_t *data, uint32_t size) override;
+    void handle_datetime(const std::string &key, const tm& value) override;
+
+    const std::string& get_result() const
+    {
+        return m_res;
+    }
+
+private:
+    void print_key(const std::string &key);
+    void print_indent();
+    void indent();
+    void unindent();
+
+    std::string m_res;
+    const int m_indent;
+    int m_current_indent;
+    bool m_is_first;
+    std::stack<bool> m_is_array;
+};
+
+
 }
 
