@@ -5,6 +5,8 @@
 #endif
 
 #include "defines.h"
+#include "BitStream.h"
+#include "Document.h"
 
 namespace json
 {
