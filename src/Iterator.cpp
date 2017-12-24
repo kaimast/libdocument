@@ -480,6 +480,141 @@ void Printer::handle_array_end()
     mode.pop();
 }
 
+DocumentPrettyPrinter::DocumentPrettyPrinter(int indent):
+    m_indent(indent), m_current_indent(0), m_is_first(true)
+{}
+
+void DocumentPrettyPrinter::handle_string(const std::string &key, const std::string &str)
+{
+    print_indent();
+    print_key(key);
+    m_res += '\"';
+    m_res += str;
+    m_res += '\"';
+}
+
+void DocumentPrettyPrinter::handle_integer(const std::string &key, const json::integer_t value)
+{
+    print_indent();
+    print_key(key);
+    m_res += to_string(value);
+}
+
+void DocumentPrettyPrinter::handle_float(const std::string &key, const json::float_t value)
+{
+    print_indent();
+    print_key(key);
+    m_res += to_string(value);
+}
+
+void DocumentPrettyPrinter::handle_map_start(const std::string &key)
+{
+    print_indent();
+    print_key(key);
+    m_res += "{\n";
+    indent();
+    m_is_first = true;
+    m_is_array.push(false);
+}
+
+void DocumentPrettyPrinter::handle_boolean(const std::string &key, const bool value)
+{
+    print_indent();
+    print_key(key);
+    m_res += (value ? "true" : "false");
+}
+
+void DocumentPrettyPrinter::handle_null(const std::string &key)
+{
+    print_indent();
+    print_key(key);
+    m_res += "null";
+}
+
+void DocumentPrettyPrinter::handle_map_end()
+{
+    unindent();
+    m_res += '\n';
+    m_is_first = true;
+    print_indent();
+    m_res += '}';
+    m_is_array.pop();
+}
+
+void DocumentPrettyPrinter::handle_array_start(const std::string &key)
+{
+    print_indent();
+    print_key(key);
+    m_res += "[\n";
+    indent();
+    m_is_first = true;
+    m_is_array.push(true);
+}
+
+void DocumentPrettyPrinter::handle_array_end()
+{
+    unindent();
+    m_res += '\n';
+    m_is_first = true;
+    print_indent();
+    m_res += ']';
+    m_is_array.pop();
+}
+
+void DocumentPrettyPrinter::handle_binary(const std::string &key, const uint8_t *data, uint32_t size)
+{
+    print_indent();
+    print_key(key);
+    m_res += "<binary data, length ";
+    m_res += to_string(size);
+    m_res += '>';
+}
+
+void DocumentPrettyPrinter::handle_datetime(const std::string &key, const tm& val)
+{
+    print_indent();
+    print_key(key);
+    m_res += to_string(val.tm_year, 4) + "-" + to_string(val.tm_mon, 2) + "-" + to_string(val.tm_mday, 2);
+    m_res += " " + to_string(val.tm_hour, 2) + ":" + to_string(val.tm_min, 2) + ":" + to_string(val.tm_sec, 2);
+}
+
+void DocumentPrettyPrinter::print_key(const std::string &key)
+{
+    if(key.empty())
+        return;
+
+    if(m_is_array.top() == true)
+        return;
+    
+    m_res += '\"';
+    m_res += key;
+    m_res += "\": ";
+}
+
+void DocumentPrettyPrinter::print_indent()
+{
+    if (m_is_first)
+    {
+        m_is_first = false;
+    }
+    else
+    {
+        m_res += ",\n";
+    }
+    for (int i = 0; i < m_current_indent; ++i)
+        m_res += ' ';
+}
+
+void DocumentPrettyPrinter::indent()
+{
+    m_current_indent += m_indent;
+}
+
+void DocumentPrettyPrinter::unindent()
+{
+    m_current_indent -= m_indent;
+}
+
 IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator_)
     : iterator(iterator_)
 {
@@ -525,6 +660,15 @@ void IterationEngine::parse_next(const std::string &key)
         tm val;
         view >> val;
         iterator.handle_datetime(key, val);
+        break;
+    }
+    case ObjectType::Binary:
+    {
+        uint32_t size = 0;
+        uint8_t *data = nullptr;
+        view >> size;
+        view.read_raw_data(&data, size);
+        iterator.handle_binary(key, data, size);
         break;
     }
     case ObjectType::Map:
