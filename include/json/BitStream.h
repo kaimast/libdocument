@@ -30,7 +30,11 @@ public:
         : m_pos(0), m_size(0), m_alloc_size(BS_MIN_REALLOC), m_data(nullptr), m_read_only(false)
     {
         m_data = reinterpret_cast<uint8_t*>(malloc(m_alloc_size));
-        write_raw_data(data, length, false);
+        
+        if(length > 0)
+        {
+            write_raw_data(data, length, false);
+        }
     }
 
     BitStream(BitStream &&other)
@@ -484,7 +488,10 @@ BitStream& BitStream::operator<< <std::string>(const std::string& str)
     uint32_t length = str.size();
     *this << length;
 
-    write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    if(length > 0)
+    {
+        write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    }
 
     return *this;
 }
@@ -495,7 +502,11 @@ BitStream& BitStream::operator<< <BitStream>(const BitStream &other)
     uint32_t length = other.size();
     *this << length;
 
-    write_raw_data(other.data(), length);
+    if(length > 0)
+    {
+        write_raw_data(other.data(), length);
+    }
+
     return *this;
 }
 
@@ -515,10 +526,13 @@ BitStream& BitStream::operator>> <BitStream>(BitStream &bstream)
         throw std::runtime_error("length is longer than BitStream");
     }
 
-    bstream.write_raw_data(current(), length);
-    move_by(length);
-    bstream.move_to(0);
+    if(length > 0)
+    {
+        bstream.write_raw_data(current(), length);
+        move_by(length);
+    }
 
+    bstream.move_to(0);
     return *this;
 }
 
@@ -526,7 +540,9 @@ template<> inline
 BitStream& BitStream::operator>> <char>(char& data)
 {
     if(at_end())
+    {
         throw std::runtime_error("Cannot read more: Already at end");
+    }
 
     data = m_data[m_pos];
     m_pos++;
