@@ -39,7 +39,10 @@ Document::Document(BitStream &data)
 {
     uint32_t size = 0;
     data >> size;
-    m_content.write_raw_data(data.current(), size);
+    if(size > 0)
+    {
+        m_content.write_raw_data(data.current(), size);
+    }
     data.move_by(size);
     m_content.move_to(0);
 }
@@ -47,7 +50,9 @@ Document::Document(BitStream &data)
 bool Document::matches_predicates(const json::Document &predicates) const
 {
     if(predicates.empty())
+    {
         return true;
+    }
 
     json::PredicateChecker checker(*this);
     json::IterationEngine engine(predicates.data(), checker);
@@ -81,7 +86,11 @@ void Document::compress(BitStream &bstream) const
 {
     uint32_t size = m_content.size();
     bstream << size;
-    bstream.write_raw_data(m_content.data(), m_content.size());
+
+    if(size > 0)
+    {
+        bstream.write_raw_data(m_content.data(), m_content.size());
+    }
 }
 
 void Document::iterate(json::Iterator &iterator) const
@@ -163,13 +172,24 @@ Document::Document(const Document& parent, const std::string &path, bool force)
 Document::Document(uint8_t *data, uint32_t length, DocumentMode mode)
 {
     if(mode == DocumentMode::ReadOnly)
+    {
         m_content.assign(data, length, true);
+    }
     else if(mode == DocumentMode::ReadWrite)
+    {
         m_content.assign(data, length, false);
+    }
     else if(mode == DocumentMode::Copy)
-        m_content.write_raw_data(data, length);
+    {
+        if(length > 0)
+        {
+            m_content.write_raw_data(data, length);
+        }
+    }
     else
+    {
         throw std::runtime_error("Unknown Doucment mode");
+    }
 
     m_content.move_to(0);
 }
@@ -202,7 +222,11 @@ Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode)
 Diff::Diff(DiffType type, const std::string &path, const uint8_t *value, uint32_t length)
 {
     m_content << type << path << length;
-    m_content.write_raw_data(value, length);
+
+    if(length > 0)
+    {
+        m_content.write_raw_data(value, length);
+    }
 }
 
 bool Document::add(const std::string &path, const json::Document &value)
@@ -568,7 +592,10 @@ String::String(const std::string &str)
     uint32_t length = str.size();
     m_content << ObjectType::String;
     m_content << length;
-    m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    if(length > 0)
+    {
+        m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    }
     m_content.move_to(0);
 }
 
