@@ -147,13 +147,22 @@ public:
 
     BitStream& write_raw_data(const uint8_t* data, const uint32_t length, bool advance = true)
     {
+        if (data == nullptr || length == 0)
+        {
+            throw std::runtime_error("Invalid parameters");
+        }
+
         if (m_pos + length > size())
+        {
             resize(m_pos + length);
+        }
 
         memcpy(&m_data[m_pos], data, length);
 
         if(advance)
+        {
             m_pos += length;
+        }
 
         return *this;
     }
@@ -161,7 +170,9 @@ public:
     void make_space(uint32_t increase)
     {
         if(m_read_only)
+        {
             throw std::runtime_error("Cannot make space in read only mode");
+        }
 
         auto remain = remaining_size();
         resize(size() + increase);
@@ -177,15 +188,15 @@ public:
         resize(size() - decrease);
     }
 
-    bool read_raw_data(uint8_t **data, uint32_t length)
+    void read_raw_data(uint8_t **data, uint32_t length)
     {
         if(m_pos+length > size())
-           return false;
-           //throw std::runtime_error("Cannot read from BitStream. Already at the end.");
+        {
+            throw std::runtime_error("Cannot read from BitStream. Already at the end.");
+        }
 
         *data = &m_data[m_pos];
         m_pos += length;
-        return true;
     }
 
     template<typename T>
@@ -209,7 +220,7 @@ public:
     template<typename T>    
     BitStream& operator<<(const T& data)
     {
-        static_assert(std::is_pod<T>());
+        static_assert(std::is_pod<T>(), "Need a specialized serialized function for non-POD types");
 
         if(m_pos + sizeof(T) >= size())
         {
@@ -232,7 +243,9 @@ public:
     BitStream& operator>>(T& data)
     {
         if(m_pos+sizeof(T) > size())
+        {
            throw std::runtime_error("Cannot read from BitStream: Already at the end.");
+        }
 
         memcpy(&data, &m_data[m_pos], sizeof(T));
         m_pos += sizeof(T);
@@ -480,10 +493,17 @@ template<> inline
 BitStream& BitStream::operator>> <BitStream>(BitStream &bstream)
 {
     if(bstream.size() > 0)
+    {
         throw std::runtime_error("Target bstream already contains data");
+    }
 
     uint32_t length = 0;
     *this >> length;
+
+    if(m_pos + length > size())
+    {
+        throw std::runtime_error("length is longer than BitStream");
+    }
 
     bstream.write_raw_data(current(), length);
     move_by(length);

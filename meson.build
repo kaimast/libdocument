@@ -1,8 +1,8 @@
-project('libdocument', 'cpp', default_options: ['cpp_std=c++1z'])
+project('libdocument', 'cpp', default_options: ['cpp_std=c++14'])
 
 inc_dirs = include_directories('/usr/local/include', 'include/')
 
-gtest = dependency('gtest', main : true)
+gtest = dependency('gtest')
 gmock = dependency('gmock')
 
 compile_args = ['-Wextra', '-Werror']
@@ -29,11 +29,11 @@ sgx_tstdc_dep = cpp.find_library('sgx_tstdc', dirs: sgx_library_path)
 sgx_tstdcxx_dep = cpp.find_library('sgx_tcxx', dirs: sgx_library_path)
 sgx_trts_dep = cpp.find_library('sgx_trts', dirs: sgx_library_path)
 
-sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-pie']
+sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-std=c++11', '-nostdinc++']
  
 doc_sgx = static_library('document_sgx', cpp_files,
     c_args: sgx_compile_args,
-    cpp_args: ['-std=c++11', '-nostdinc++'] + sgx_compile_args,
+    cpp_args: sgx_compile_args,
     link_args:['-Wl,--no-undefined','-nostdlib','-nodefaultlibs','-L'+sgx_sdk_dir+'/lib64',
     '-Wl,--whole-archive','-lsgx_trts','-Wl,--no-whole-archive',
     '-Wl,--start-group', '-lsgx_tstdc','-lsgx_tcxx', '-Wl,--end-group',
@@ -41,7 +41,7 @@ doc_sgx = static_library('document_sgx', cpp_files,
     include_directories: [sgx_incdir, sgx_tlibc_incdir, sgx_stdcxx_incdir, inc_dirs], install: true)
 
 
-e = executable('libdocument-test', ['test/json.cpp'], dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
+e = executable('libdocument-test', ['test/main.cpp', 'test/json.cpp'], dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
 test('libdocument-test', e)
 
 install_subdir('include/json', install_dir : 'include')
