@@ -177,13 +177,24 @@ Document::Document(uint8_t *data, uint32_t length, DocumentMode mode)
 Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode)
 {
     if(mode == DocumentMode::ReadWrite)
+    {
         throw std::runtime_error("Cannot modify read-only data");
+    }
     else if(mode == DocumentMode::ReadOnly)
+    {
         m_content.assign(data, length, true);
+    }
     else if(mode == DocumentMode::Copy)
-        m_content.write_raw_data(data, length);
+    {
+        if(length > 0)
+        {
+            m_content.write_raw_data(data, length);
+        }
+    }
     else
+    {
         throw std::runtime_error("Unknown Doucment mode");
+    }
 
     m_content.move_to(0);
 }

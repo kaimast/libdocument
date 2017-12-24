@@ -74,7 +74,12 @@ public:
             m_read_only = false;
             resize(0);
             move_to(0);
-            write_raw_data(other.data(), other.size());
+
+            if(!other.empty())
+            {
+                write_raw_data(other.data(), other.size());
+            }
+
             move_to(0);
         }
     }
@@ -145,6 +150,11 @@ public:
         assert(m_size <= m_alloc_size);
     }
 
+    /**
+     * Write a raw buffer to the bitstream
+     *
+     * @note This will raise an exception if data is a nullpointer or length is of size 0
+     */
     BitStream& write_raw_data(const uint8_t* data, const uint32_t length, bool advance = true)
     {
         if (data == nullptr || length == 0)
