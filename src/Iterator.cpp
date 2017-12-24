@@ -109,6 +109,7 @@ void PredicateChecker::push_key(const std::string &key)
                 break;
             case ObjectType::String:
                 val.str = view.as_string();
+                break;
             default:
                 val.type = ObjectType::Null;
                 break;
@@ -150,8 +151,11 @@ void PredicateChecker::pop_path()
 }
 
 void PredicateChecker::handle_binary(const std::string &key, const uint8_t *data, uint32_t len)
-{
-
+{   
+    (void)key;
+    (void)data;
+    (void)len;
+    //FIXME binary predicates?
 }
 
 void PredicateChecker::handle_string(const std::string &key, const std::string &value)
@@ -329,11 +333,14 @@ void PredicateChecker::handle_boolean(const std::string &key, const bool value)
 void PredicateChecker::handle_null(const std::string &key)
 {
     //FIXME
+    (void)key;
 }
 
 void PredicateChecker::handle_datetime(const std::string &key, const tm& val)
 {
     //FIXME
+    (void)key;
+    (void)val;
 }
 
 void PredicateChecker::handle_map_end()
@@ -421,6 +428,7 @@ void Printer::handle_map_start(const std::string &key)
 
 void Printer::handle_binary(const std::string &key, const uint8_t *data, uint32_t len)
 {
+    handle_key(key);
     result += "b'";
 
     for(uint32_t i = 0; i < len; ++i)
@@ -563,6 +571,8 @@ void DocumentPrettyPrinter::handle_array_end()
 
 void DocumentPrettyPrinter::handle_binary(const std::string &key, const uint8_t *data, uint32_t size)
 {
+    (void)data;
+
     print_indent();
     print_key(key);
     m_res += "<binary data, length ";

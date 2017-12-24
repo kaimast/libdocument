@@ -5,7 +5,7 @@ inc_dirs = include_directories('/usr/local/include', 'include/')
 gtest = dependency('gtest', main : true)
 gmock = dependency('gmock')
 
-compile_args = []
+compile_args = ['-Wextra', '-Werror']
 
 if get_option('use_geo') == true
     compile_args = compile_args + ['-DUSE_GEO']
