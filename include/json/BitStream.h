@@ -50,16 +50,23 @@ public:
         clear();
     }
 
+    /**
+     * Allocate initial buffer space so we reduce the number of mallocs
+     */
     void pre_alloc(uint32_t size)
     {
         if(size < m_alloc_size)
+        {
             throw std::runtime_error("Can only increase alloc size");
+        }
 
         m_alloc_size = size;
         m_data = reinterpret_cast<uint8_t*>(realloc(m_data, m_alloc_size));
 
         if(m_data == nullptr)
+        {
             throw std::runtime_error("Failed to allocated data");
+        }
     }
 
     void copy(const BitStream &other, bool ignore_read_only = false)
@@ -120,7 +127,9 @@ public:
     void resize(uint32_t new_size)
     {
         if(m_read_only)
+        {
             throw std::runtime_error("Cannot resize: is read-only!");
+        }
 
         if(m_data == nullptr)
         {
@@ -196,7 +205,9 @@ public:
     void remove_space(uint32_t decrease)
     {
         if(decrease > remaining_size())
+        {
             throw std::runtime_error("Not enoug space left");
+        }
 
         memmove(current(), current()+decrease, remaining_size()-decrease);
         resize(size() - decrease);
