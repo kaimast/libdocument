@@ -38,9 +38,6 @@ public:
         m_content = std::move(data);
     }
 
-    /// Because we don't have move semantics...
-    void copy(const Document &other, bool ignore_read_only = false);
-
     bool empty() const
     {
         return m_content.size() == 0;
@@ -48,7 +45,11 @@ public:
 
     ObjectType get_type() const;
 
-    /// Get the number of objects
+    /**
+     * Get the number of children held by this object
+     *
+     * \note This is only supported for maps and arrays
+     */
     uint32_t get_size() const;
 
 #ifdef USE_GEO
@@ -60,12 +61,22 @@ public:
     float_t as_float() const;
     bool as_boolean() const;
     BitStream as_bitstream() const;
-//    const uint8_t* as_binary() const;
 
     bool add(const std::string &path, const json::Document &value);
-
-    std::vector<std::string> get_string_values() const;
-    std::vector<std::string> get_keys() const;
+    
+    /**
+     * Get the key of the n-th child
+     *
+     * \note This is only supported for maps
+     */
+    std::string get_key(size_t pos) const;
+    
+    /**
+     * Returns a read-only view of the child as position pos
+     *
+     * \note This is only supported for arrays and maps
+     */
+    json::Document get_child(size_t pos) const;
 
     bool matches_predicates(const json::Document &predicates) const;
 
@@ -86,6 +97,9 @@ public:
         m_content = std::move(other.m_content);
     }
 
+    /**
+     * Discard contents of the document
+     */
     void clear()
     {
         m_content.clear();
@@ -105,12 +119,11 @@ public:
     void compress(BitStream &bstream) const;
 
     std::string str() const;
-    std::string pretty_str(int indent) const;
 
-    bool operator==(const Document& other) const
-    {
-        return this->m_content == other.m_content;
-    }
+    /**
+     * Get a human-readable representation of the document that is nicely formatted
+     */
+    std::string pretty_str(int indent) const;
 
     /// Size in bytes of this document
     uint32_t byte_size() const
@@ -126,6 +139,9 @@ protected:
     BitStream m_content;
 };
 
+/**
+ * Construct a document from a std::string
+ */
 class String : public Document
 {
 public:
@@ -154,12 +170,19 @@ public:
     }
 };
 
+/**
+ * Construct a document from an integer
+ */
 class Integer : public Document
 {
 public:
     Integer(integer_t i);
 };
 
+inline bool operator==(const Document &first, const Document &second)
+{
+    return first.data() == second.data();
+}
 }
 
 inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
@@ -180,5 +203,4 @@ inline std::ostream& operator<<(std::ostream &os, const json::Document &doc)
     return os << doc.str();
 }
 #endif
-
 

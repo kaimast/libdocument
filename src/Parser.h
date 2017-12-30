@@ -5,6 +5,9 @@
 namespace json
 {
 
+/**
+ * Helper class to convert a JSON string to a binary object
+ */
 class Parser
 {
 public:

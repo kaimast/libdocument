@@ -1,4 +1,6 @@
 #include <json/json.h>
+#include <json/Document.h>
+
 #include <gtest/gtest.h>
 
 using namespace json;
@@ -237,6 +239,22 @@ TEST(JsonTest, wildcard_filter_nested)
     Document filtered(doc, std::vector<std::string>{"a.*.b.c"});
 
     EXPECT_EQ(filtered.str(), "{\"a\":[{\"b\":{\"c\":42}}]}");
+}
+
+TEST(JsonTest, get_key)
+{
+    Document doc("{\"a\":42, \"b\": \"foobar\"}");
+   
+    EXPECT_EQ(doc.get_size(), 2);
+    EXPECT_EQ(doc.get_key(1), "b");
+}
+
+TEST(JsonTest, get_child)
+{
+    Document doc("{\"a\":42, \"b\": \"foobar\"}");
+   
+    EXPECT_EQ(doc.get_size(), 2);
+    EXPECT_EQ(doc.get_child(1).as_string(), "foobar");
 }
 
 TEST(JsonTest, add)

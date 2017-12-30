@@ -14,6 +14,39 @@ using std::to_string;
 namespace json
 {
 
+inline void skip_child(BitStream &view)
+{
+    ObjectType ctype;
+    view >> ctype;
+
+    switch(ctype)
+    {
+    case ObjectType::Binary:
+    case ObjectType::Map:
+    case ObjectType::Array:
+    case ObjectType::String:
+    {
+        uint32_t byte_size;
+        view >> byte_size;
+        view.move_by(byte_size);
+        break;
+    }
+    case ObjectType::Null:
+    case ObjectType::True:
+    case ObjectType::False:
+        break;
+    case ObjectType::Integer:
+        view.move_by(sizeof(json::integer_t));
+        break;
+    case ObjectType::Float:
+        view.move_by(sizeof(json::float_t));
+        break;
+    default:
+        throw std::runtime_error("Unknown document type!");
+    }
+}
+
+
 Document::~Document()
 {
 }
@@ -75,11 +108,6 @@ int64_t Document::hash() const
 Document Document::duplicate() const
 {
     return Document(m_content.data(), m_content.size(), DocumentMode::Copy);
-}
-
-void Document::copy(const Document &other, bool ignore_read_only)
-{
-    m_content.copy(other.m_content, ignore_read_only);
 }
 
 void Document::compress(BitStream &bstream) const
@@ -246,7 +274,7 @@ bool Document::add(const std::string &path, const json::Document &value)
     }
 }
 
-std::vector<std::string> Document::get_string_values() const
+json::Document Document::get_child(size_t pos) const
 {
     BitStream view;
     view.assign(m_content.data(), m_content.size(), true);
@@ -257,89 +285,79 @@ std::vector<std::string> Document::get_string_values() const
     view >> type;
 
     if(type != ObjectType::Map && type != ObjectType::Array)
+    {
         throw std::runtime_error("Document is not a map or array");
+    }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
+
+    if(pos >= size)
+    {
+        throw std::runtime_error("Position is out of bounds!");
+    }
 
     for(uint32_t i = 0; i < size; ++i)
     {
         if(type == ObjectType::Map)
         {
             std::string key;
-            view >> key;\
+            view >> key;
         }
 
-        ObjectType ctype;
-        view >> ctype;
-
-        if(ctype != ObjectType::String)
-            throw std::runtime_error("Value is not a string");
-
-        std::string value;
-        view >> value;
-
-        result.push_back(value);
+        if(i == pos)
+        {
+            break;
+        }
+        else
+        {
+            skip_child(view);
+        }
     }
 
-    return result;
+    return json::Document(view.current(), view.remaining_size(), DocumentMode::ReadOnly);
 }
 
-std::vector<std::string> Document::get_keys() const
+std::string Document::get_key(size_t pos) const
 {
     BitStream view;
     view.assign(m_content.data(), m_content.size(), true);
-
-    std::vector<std::string> result;
 
     ObjectType type;
     view >> type;
 
     if(type != ObjectType::Map)
+    {
         throw std::runtime_error("Document is not a map");
+    }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
 
+    if(pos >= size)
+    {
+        throw std::runtime_error("Position is out of bounds!");
+    }
+
     for(uint32_t i = 0; i < size; ++i)
     {
-        std::string key;
-        view >> key;
-        result.push_back(key);
-
-        ObjectType ctype;
-        view >> ctype;
-
-        switch(ctype)
+        if(i == pos)
         {
-        case ObjectType::Binary:
-        case ObjectType::Map:
-        case ObjectType::Array:
-        case ObjectType::String:
-        {
-            uint32_t byte_size;
-            view >> byte_size;
-            view.move_by(byte_size);
             break;
         }
-        case ObjectType::Null:
-        case ObjectType::True:
-        case ObjectType::False:
-            break;
-        case ObjectType::Integer:
-            view.move_by(sizeof(json::integer_t));
-            break;
-        case ObjectType::Float:
-            view.move_by(sizeof(json::float_t));
-            break;
-        default:
-            throw std::runtime_error("Unknown document type!");
+        else
+        {
+            std::string key;
+            view >> key;
+
+            skip_child(view);
         }
     }
 
-    return result;
+    std::string key;
+    view >> key;
+    return key;
 }
-
 
 uint32_t Document::get_size() const
 {
@@ -351,21 +369,6 @@ uint32_t Document::get_size() const
 
     switch(type)
     {
-    case ObjectType::Binary:
-    {
-        uint32_t byte_size;
-        view >> byte_size;
-        return byte_size;
-    }
-    case ObjectType::Null:
-        return 0;
-    case ObjectType::Datetime:
-    case ObjectType::Float:
-    case ObjectType::Integer:
-    case ObjectType::String:
-    case ObjectType::True:
-    case ObjectType::False:
-        return 1;
     case ObjectType::Map:
     case ObjectType::Array:
     {
@@ -374,7 +377,7 @@ uint32_t Document::get_size() const
         return size;
     }
     default:
-        throw std::runtime_error("Unknown document type!");
+        throw std::runtime_error("Object is not a map or array!");
     }
 }
 
