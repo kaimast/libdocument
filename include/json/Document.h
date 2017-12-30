@@ -112,7 +112,13 @@ public:
         m_content.detach(data, len);
     }
 
-    Document duplicate() const;
+    /**
+     * Create an identical copy of this document
+     *
+     * \param force_copy
+     *      Ensure the new document is operation on a new buffer
+     */
+    Document duplicate(bool force_copy = false) const;
 
     bool insert(const std::string &path, const json::Document &doc);
 

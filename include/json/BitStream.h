@@ -69,29 +69,25 @@ public:
         }
     }
 
-    void copy(const BitStream &other, bool ignore_read_only = false)
+    /**
+     * Create an identical copy of this BitStream
+     *
+     * \param force_copy [optional]
+     *      Ensure the copy has it's own dedicated copy of the data
+     */
+    BitStream duplicate(bool force_copy = false) const
     {
-        clear();
+        BitStream result;
 
-        if(other.m_read_only && !ignore_read_only)
+        if(m_read_only && !force_copy)
         {
-            resize(0);
-            m_read_only = true;
-            m_data = other.m_data;
-            m_size = m_alloc_size = other.m_size;
+            BitStream result;
+            result.assign(m_data, m_size, true);
+            return result;
         }
         else
         {
-            m_read_only = false;
-            resize(0);
-            move_to(0);
-
-            if(!other.empty())
-            {
-                write_raw_data(other.data(), other.size());
-            }
-
-            move_to(0);
+            return BitStream(m_data, m_size);
         }
     }
 
@@ -105,11 +101,6 @@ public:
         m_read_only = false;
         m_data = nullptr;
         m_size = m_alloc_size = 0;
-    }
-
-    BitStream duplicate() const
-    {
-        return BitStream(m_data, m_size);
     }
 
     void operator=(BitStream &&other)
@@ -327,7 +318,9 @@ public:
     void assign(const uint8_t *buffer, uint32_t len, bool read_only)
     {
         if(read_only == false)
+        {
             throw std::runtime_error("Cannot use const reference and writable buffer");
+        }
 
         assign(const_cast<uint8_t*>(buffer), len, true);
     }
@@ -392,10 +385,14 @@ public:
         if(pos > m_size)
         {
             if(allocate)
+            {
                 resize(pos+1);
+            }
             else
+            {
                 return false;
-        }
+            }
+         }
 
          m_pos = pos;
          return true;
@@ -405,7 +402,9 @@ public:
     {
         // make sure we don't overflow
         if(offset < 0 && static_cast<uint32_t>((-1)*offset) > m_pos)
+        {
             throw std::runtime_error("Can't move. Would overflow buffer!");
+        }
 
         return move_to(m_pos + offset, allocate);
     }

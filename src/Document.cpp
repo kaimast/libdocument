@@ -105,9 +105,11 @@ int64_t Document::hash() const
     return m_content.hash();
 }
 
-Document Document::duplicate() const
+Document Document::duplicate(bool force_copy) const
 {
-    return Document(m_content.data(), m_content.size(), DocumentMode::Copy);
+    json::Document out("");
+    out.assign(m_content.duplicate(force_copy));
+    return out;
 }
 
 void Document::compress(BitStream &bstream) const
