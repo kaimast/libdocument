@@ -11,12 +11,12 @@ DocumentPrettyPrinter::DocumentPrettyPrinter(int indent):
     m_indent(indent), m_current_indent(0), m_is_first(true)
 {}
 
-void DocumentPrettyPrinter::handle_string(const std::string &key, const std::string &str)
+void DocumentPrettyPrinter::handle_string(const std::string &key, const std::string &value)
 {
     print_indent();
     print_key(key);
     m_res += '\"';
-    m_res += str;
+    m_res += value;
     m_res += '\"';
 }
 
@@ -99,22 +99,26 @@ void DocumentPrettyPrinter::handle_binary(const std::string &key, const uint8_t 
     m_res += '>';
 }
 
-void DocumentPrettyPrinter::handle_datetime(const std::string &key, const tm& val)
+void DocumentPrettyPrinter::handle_datetime(const std::string &key, const tm& value)
 {
     print_indent();
     print_key(key);
-    m_res += to_string(val.tm_year, 4) + "-" + to_string(val.tm_mon, 2) + "-" + to_string(val.tm_mday, 2);
-    m_res += " " + to_string(val.tm_hour, 2) + ":" + to_string(val.tm_min, 2) + ":" + to_string(val.tm_sec, 2);
+    m_res += to_string(value.tm_year, 4) + "-" + to_string(value.tm_mon, 2) + "-" + to_string(value.tm_mday, 2);
+    m_res += " " + to_string(value.tm_hour, 2) + ":" + to_string(value.tm_min, 2) + ":" + to_string(value.tm_sec, 2);
 }
 
 void DocumentPrettyPrinter::print_key(const std::string &key)
 {
     if(key.empty())
+    {
         return;
+    }
 
-    if(m_is_array.top() == true)
+    if(m_is_array.top())
+    {
         return;
-    
+    }
+   
     m_res += '\"';
     m_res += key;
     m_res += "\": ";

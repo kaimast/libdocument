@@ -8,7 +8,7 @@ namespace json
 {
 
 PredicateChecker::PredicateChecker(const json::Document &document)
-    : m_pred_matches(false), m_pred_values(), m_document(document), m_matched(true)
+    : m_pred_matches(false), m_document(document), m_matched(true)
 {
 }
 
@@ -19,9 +19,8 @@ bool PredicateChecker::get_result() const
 
 void PredicateChecker::push_path(const std::string &path)
 {
-    if(path == "")
+    if(path.empty())
     {
-        assert(m_path.size() == 0);
         return;
     }
 
@@ -47,7 +46,10 @@ void PredicateChecker::push_path(const std::string &path)
 
 void PredicateChecker::push_key(const std::string &key)
 {
-    assert(key != "");
+    if(key.empty())
+    {
+        throw std::runtime_error("cannot push empty key");
+    }
 
     if(key == keyword(IN))
     {
@@ -85,9 +87,13 @@ void PredicateChecker::push_key(const std::string &key)
     else if(key == keyword(GREATER_THAN_EQUAL) || key == keyword(LESS_THAN))
     {
         if(key == keyword(LESS_THAN))
+        {
             m_mode.push_back(predicate_mode::LESS_THAN);
+        }
         else
+        {
             m_mode.push_back(predicate_mode::GREATER_THAN_EQUAL);
+        }
 
         m_pred_values.clear();
         m_pred_matches = false;
@@ -129,20 +135,26 @@ void PredicateChecker::push_key(const std::string &key)
 void PredicateChecker::pop_path()
 {
     if(m_path_sizes.empty())
+    {
         return;
+    }
 
     size_t count = m_path_sizes.top();
     m_path_sizes.pop();
 
     if(m_path.size() < count || m_path.size() != m_mode.size())
+    {
         throw std::runtime_error("invalid state");
+    }
 
     for(size_t i = 0; i < count; ++i)
     {
         if(m_mode.back() != predicate_mode::NORMAL)
         {
             if(!m_pred_matches)
+            {
                 m_matched = false;
+            }
         }
 
         m_path.pop_back();
@@ -177,18 +189,24 @@ void PredicateChecker::handle_string(const std::string &key, const std::string &
 
             std::string other = view.as_string();
             if(other == value)
+            {
                 found = true;
+            }
         }
 
         if(!found)
+        {
             m_matched = false;
+        }
     }
     else
     {
         for(auto &val: m_pred_values)
         {
             if(val.type == ObjectType::String && val.str == value)
+            {
                 m_pred_matches = true;
+            }
         }
     }
 
@@ -292,9 +310,13 @@ void PredicateChecker::handle_float(const std::string &key, const json::float_t 
         for(auto &val: m_pred_values)
         {
             if(val.type == ObjectType::Float && val.floating == value)
+            {
                 m_pred_matches = true;
+            }
             else if(val.type == ObjectType::Integer && val.integer == value)
+            {
                 m_pred_matches = true;
+            }
         }
     }
     else if(mode() == predicate_mode::LESS_THAN)
@@ -362,11 +384,11 @@ void PredicateChecker::handle_null(const std::string &key)
     (void)key;
 }
 
-void PredicateChecker::handle_datetime(const std::string &key, const tm& val)
+void PredicateChecker::handle_datetime(const std::string &key, const tm& value)
 {
     //FIXME
     (void)key;
-    (void)val;
+    (void)value;
 }
 
 void PredicateChecker::handle_map_end()

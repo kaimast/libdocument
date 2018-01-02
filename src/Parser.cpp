@@ -71,26 +71,30 @@ void Parser::parse(const std::string &key)
     }
 }
 
-bool Parser::check_string(const std::string &val)
+bool Parser::check_string(const std::string &value)
 {
     size_t c = 0;
 
-    while(c < val.size() && it != str.end())
+    while(c < value.size() && it != str.end())
     {
-        if(val[c] != *it)
+        if(value[c] != *it)
+        {
             return false;
+        }
 
         ++c;
         ++it;
     }
 
-    return c == val.size();
+    return c == value.size();
 }
 
 void Parser::parse_datetime(const std::string &key)
 {
     if(!check_string("d\""))
+    {
         throw std::runtime_error("Not a datetime structure!");
+    }
 
     enum class parse_state
     {
@@ -104,7 +108,7 @@ void Parser::parse_datetime(const std::string &key)
     };
 
     auto state = parse_state::Year;
-    std::string temp = "";
+    std::string temp;
 
     tm val;
     memset(&val, 0, sizeof(val));
@@ -113,8 +117,10 @@ void Parser::parse_datetime(const std::string &key)
     {
         if(isspace(*it) || *it == '-' || *it == ':' || *it == '"')
         {
-            if(temp == "")
+            if(temp.empty())
+            {
                 continue;
+            }
 
             const char *start = &temp[0];
             char *end = nullptr;
@@ -154,11 +160,15 @@ void Parser::parse_datetime(const std::string &key)
             temp = "";
         }
         else
+        {
             temp += *it;
+        }
     }
 
     if(state != parse_state::Done)
+    {
         throw std::runtime_error("Failed to parse datetime");
+    }
 
     //TODO check/support for other formats
     //auto res = strptime(str.c_str(), "%Y-%m-%d %T", &val);
@@ -170,7 +180,9 @@ void Parser::parse_datetime(const std::string &key)
 void Parser::parse_map(const std::string &key)
 {
     if(it == str.end() || *it != '{')
+    {
         throw std::runtime_error("Not a valid map!");
+    }
 
     ++it;
 
@@ -183,11 +195,15 @@ void Parser::parse_map(const std::string &key)
         skip_whitespace();
 
         if(first)
+        {
             first = false;
+        }
         else
         {
             if(it == str.end() || *it != ',')
+            {
                 throw std::runtime_error("Not a valid map");
+            }
 
             ++it;
             skip_whitespace();
@@ -196,7 +212,9 @@ void Parser::parse_map(const std::string &key)
         std::string child_key = read_string();
 
         if(it == str.end() || *it != ':')
+        {
             throw std::runtime_error("Not a valid map");
+        }
 
         ++it;
         skip_whitespace();
@@ -205,7 +223,9 @@ void Parser::parse_map(const std::string &key)
     }
 
     if(*it != '}')
+    {
         throw std::runtime_error("Map not terminated!");
+    }
 
     ++it;
 
@@ -252,13 +272,17 @@ void Parser::parse_number(const std::string &key)
     size_t diff = end-start;
 
     for(size_t i = 0; i < diff; ++i)
+    {
         ++it;
+    }
 }
 
 void Parser::parse_true(const std::string &key)
 {
     if(!check_string(keyword(TRUE)))
+    {
         throw std::runtime_error("Not a valid boolean");
+    }
 
     writer.write_boolean(key, true);
 }
@@ -266,7 +290,9 @@ void Parser::parse_true(const std::string &key)
 void Parser::parse_false(const std::string &key)
 {
     if(!check_string(keyword(FALSE)))
+    {
         throw std::runtime_error("Not a valid boolean");
+    }
 
     writer.write_boolean(key, false);
 }
@@ -274,7 +300,9 @@ void Parser::parse_false(const std::string &key)
 void Parser::parse_null(const std::string &key)
 {
     if(!check_string(keyword(NIL)))
+    {
         throw std::runtime_error("Not a valid null value");
+    }
 
     writer.write_null(key);
 }
@@ -282,7 +310,9 @@ void Parser::parse_null(const std::string &key)
 void Parser::parse_array(const std::string &key)
 {
     if(it == str.end() || *it != '[')
+    {
         throw std::runtime_error("Not a valid array!");
+    }
 
     ++it;
 
@@ -296,11 +326,15 @@ void Parser::parse_array(const std::string &key)
         skip_whitespace();
 
         if(first)
+        {
             first = false;
+        }
         else
         {
             if(it == str.end() || *it != ',')
+            {
                 throw std::runtime_error("Not a valid array");
+            }
 
             ++it;
             skip_whitespace();
@@ -313,7 +347,9 @@ void Parser::parse_array(const std::string &key)
     skip_whitespace();
 
     if(*it != ']')
+    {
         throw std::runtime_error("Array not terminated!");
+    }
 
     ++it;
     writer.end_array();
@@ -328,10 +364,12 @@ void Parser::parse_string(const std::string &key)
 std::string Parser::read_string()
 {
     if(it == str.end() || *it != '"')
+    {
         throw std::runtime_error("Not a valid string");
+    }
 
     ++it;
-    std::string result = "";
+    std::string result;
 
     while(it != str.end() && *it != '"')
     {
@@ -340,7 +378,9 @@ std::string Parser::read_string()
     }
 
     if(it == str.end())
+    {
         throw std::runtime_error("String not terminated!");
+    }
 
     ++it;
     return result;

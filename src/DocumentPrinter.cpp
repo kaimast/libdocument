@@ -11,7 +11,7 @@ void Printer::handle_key(const std::string &key)
 {
     const auto& m = mode.top();
 
-    if(key == "")
+    if(key.empty())
     {
         assert(mode.empty());
         return;
@@ -41,22 +41,22 @@ void Printer::handle_key(const std::string &key)
     }
 }
 
-void Printer::handle_string(const std::string &key, const std::string &str)
+void Printer::handle_string(const std::string &key, const std::string &value)
 {
     handle_key(key);
-    result += '"' + str + '"';
+    result += '"' + value + '"';
 }
 
-void Printer::handle_integer(const std::string &key, const integer_t i)
+void Printer::handle_integer(const std::string &key, const integer_t value)
 {
     handle_key(key);
-    result += to_string(i);
+    result += to_string(value);
 }
 
-void Printer::handle_float(const std::string &key, const json::float_t d)
+void Printer::handle_float(const std::string &key, const json::float_t value)
 {
     handle_key(key);
-    result += to_string(d);
+    result += to_string(value);
 }
 
 void Printer::handle_map_start(const std::string &key)
@@ -104,13 +104,13 @@ void Printer::handle_null(const std::string &key)
     result += keyword(NIL);
 }
 
-void Printer::handle_datetime(const std::string &key, const tm& val)
+void Printer::handle_datetime(const std::string &key, const tm& value)
 {
     handle_key(key);
 
     result += "d\"";
-    result += to_string(val.tm_year, 4) + "-" + to_string(val.tm_mon, 2) + "-" + to_string(val.tm_mday, 2);
-    result += " " + to_string(val.tm_hour, 2) + ":" + to_string(val.tm_min, 2) + ":" + to_string(val.tm_sec, 2);
+    result += to_string(value.tm_year, 4) + "-" + to_string(value.tm_mon, 2) + "-" + to_string(value.tm_mday, 2);
+    result += " " + to_string(value.tm_hour, 2) + ":" + to_string(value.tm_min, 2) + ":" + to_string(value.tm_sec, 2);
     result += '"';
 }
 

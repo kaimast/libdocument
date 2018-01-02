@@ -15,7 +15,7 @@ IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator
 
 void IterationEngine::run()
 {
-    if(view.size() > 0)
+    if(!view.empty())
     {
         parse_next("");
     }

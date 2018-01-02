@@ -43,8 +43,10 @@ void Writer::end_array()
     m_result << byte_size << size;
     m_result.move_to(end_pos);
 
-    assert(m_mode.size() > 0);
-    assert(m_mode.top() == IN_ARRAY);
+    if(m_mode.empty() || m_mode.top() != IN_ARRAY)
+    {
+        throw std::runtime_error("Invalid state");
+    }
 
     m_mode.pop();
     m_starts.pop();
@@ -81,8 +83,10 @@ void Writer::end_map()
 
     m_result.move_to(end_pos);
 
-    assert(m_mode.size() > 0);
-    assert(m_mode.top() == IN_MAP);
+    if(m_mode.empty() || m_mode.top() != IN_MAP)
+    {
+        throw std::runtime_error("Invalid state");
+    }
 
     m_sizes.pop();
     m_starts.pop();
@@ -93,10 +97,9 @@ void Writer::end_map()
 
 void Writer::check_end()
 {
-    if(m_mode.size() == 0)
+    if(m_mode.empty())
     {
         m_mode.push(DONE);
-        //m_result.move_to(0);
     }
 }
 
@@ -107,11 +110,11 @@ void Writer::write_raw_data(const std::string &key, const uint8_t *data, uint32_
     check_end();
 }
 
-void Writer::write_binary(const std::string &key, const BitStream &data)
+void Writer::write_binary(const std::string &key, const BitStream &value)
 {
     handle_key(key);
-    m_result << ObjectType::Binary << static_cast<uint32_t>(data.size());
-    m_result.write_raw_data(data.data(), data.size());
+    m_result << ObjectType::Binary << static_cast<uint32_t>(value.size());
+    m_result.write_raw_data(value.data(), value.size());
 }
 
 #ifdef USE_GEO
@@ -123,17 +126,17 @@ void Writer::write_vector2(const std::string &key, const geo::vector2d &vec)
 }
 #endif
 
-void Writer::write_float(const std::string &key, const double &val)
+void Writer::write_float(const std::string &key, const double &value)
 {
     handle_key(key);
-    m_result << ObjectType::Float << val;
+    m_result << ObjectType::Float << value;
     check_end();
 }
 
-void Writer::write_integer(const std::string &key, const integer_t &val)
+void Writer::write_integer(const std::string &key, const integer_t &value)
 {
     handle_key(key);
-    m_result << ObjectType::Integer << val;
+    m_result << ObjectType::Integer << value;
     check_end();
 }
 
@@ -141,10 +144,14 @@ void Writer::write_boolean(const std::string &key, const bool value)
 {
     handle_key(key);
 
-    if(value == true)
+    if(value)
+    {
         m_result << ObjectType::True;
+    }
     else
+    {
         m_result << ObjectType::False;
+    }
 
     check_end();
 }
@@ -156,34 +163,44 @@ void Writer::write_null(const std::string &key)
     check_end();
 }
 
-void Writer::write_datetime(const std::string &key, const tm &val)
+void Writer::write_datetime(const std::string &key, const tm &value)
 {
     handle_key(key);
     m_result << ObjectType::Datetime;
-    m_result << val;
+    m_result << value;
     check_end();
 }
 
-void Writer::write_string(const std::string &key, const std::string &str)
+void Writer::write_string(const std::string &key, const std::string &value)
 {
     handle_key(key);
-    m_result << ObjectType::String << str;
+    m_result << ObjectType::String << value;
     check_end();
 }
 
 void Writer::handle_key(const std::string &key)
 {
-    if(m_mode.size() == 0)
+    if(key.empty())
     {
-        return;
+        if(m_mode.empty())
+        {
+            return;
+        }
+        else if(m_mode.top() != IN_ARRAY)
+        {
+            throw std::runtime_error("Empty key only valid for initial object or in arrays!");
+        }
+    }
+
+    if(m_mode.empty())
+    {
+        throw std::runtime_error("Invalid state");
     }
 
     if(m_mode.top() == DONE)
     {
         throw std::runtime_error("Cannot write more. Already done");
     }
-
-    assert(m_mode.size() > 0);
 
     auto size = m_sizes.top();
     m_sizes.pop();

@@ -5,7 +5,7 @@
 #include "Parser.h"
 
 #include <cctype>
-#include <time.h>
+#include <ctime>
 #include <list>
 #include <stack>
 
@@ -46,15 +46,9 @@ inline void skip_child(BitStream &view)
     }
 }
 
-
-Document::~Document()
-{
-}
-
 Document::Document(const std::string &str)
-    : m_content()
 {
-    if(str != "")
+    if(!str.empty())
     {
         Parser parser(str, m_content);
         parser.do_parse();
@@ -62,13 +56,12 @@ Document::Document(const std::string &str)
     }
 }
 
-Document::Document(Document &&other)
+Document::Document(Document &&other) noexcept
     : m_content(std::move(other.m_content))
 {
 }
 
 Document::Document(BitStream &data)
-    : m_content()
 {
     uint32_t size = 0;
     data >> size;
@@ -149,11 +142,12 @@ Document::Document(const Document& parent, const std::vector<std::string> &paths
     uint32_t num_found = search.do_search(m_content);
 
     if(num_found != paths.size() && force)
+    {
         throw std::runtime_error("Not all paths were found");
+    }
 }
 
 Document::Document(const Document &parent, const uint32_t pos)
-    : m_content()
 {
     BitStream view;
     view.assign(parent.m_content.data(), parent.m_content.size(), true);
@@ -162,13 +156,17 @@ Document::Document(const Document &parent, const uint32_t pos)
     view >> type;
 
     if(type != ObjectType::Array)
+    {
         throw std::runtime_error("Not an array");
+    }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
 
     if(pos >= size)
+    {
         throw std::runtime_error("out of array bounds!");
+    }
 
     for(uint32_t i = 0; i < pos; ++i)
     {
@@ -196,7 +194,9 @@ Document::Document(const Document& parent, const std::string &path, bool force)
     uint32_t num_found = search.do_search(m_content);
 
     if(num_found == 0 && force)
+    {
         throw std::runtime_error("Path was not found");
+    }
 }
 
 Document::Document(uint8_t *data, uint32_t length, DocumentMode mode)
@@ -389,7 +389,9 @@ ObjectType Document::get_type() const
     view.assign(m_content.data(), m_content.size(), true);
 
     if(view.at_end())
+    {
         return ObjectType::Null;
+    }
 
     ObjectType type;
     view >> type;
@@ -406,7 +408,9 @@ BitStream Document::as_bitstream() const
     view >> type;
 
     if(type != ObjectType::Binary)
+    {
         throw std::runtime_error("Not a binary object");
+    }
 
     uint32_t size;
     view >> size;
@@ -439,7 +443,9 @@ json::integer_t Document::as_integer() const
     view >> type;
 
     if(type != ObjectType::Integer)
+    {
         throw std::runtime_error("Not an integer!");
+    }
 
     json::integer_t i;
     view >> i;
@@ -455,7 +461,9 @@ json::float_t Document::as_float() const
     view >> type;
 
     if(type != ObjectType::Float)
+    {
         throw std::runtime_error("Not a float!");
+    }
 
     json::float_t f;
     view >> f;
@@ -471,11 +479,17 @@ bool Document::as_boolean() const
     view >> type;
 
     if(type == ObjectType::True)
+    {
         return true;
+    }
     else if(type == ObjectType::False)
+    {
         return false;
+    }
     else
+    {
         throw std::runtime_error("Not a boolean!");
+    }
 }
 
 #ifdef USE_GEO
@@ -489,7 +503,9 @@ geo::vector2d Document::as_vector2() const
     view >> type;
 
     if(type != ObjectType::Vector2)
+    {
         throw std::runtime_error("Not a vector");
+    }
 
     geo::vector2d res;
     view >> res.X;
@@ -508,7 +524,9 @@ std::string Document::as_string() const
     view >> type;
 
     if(type != ObjectType::String)
+    {
         throw std::runtime_error("Not a string!");
+    }
 
     std::string str;
     view >> str;
@@ -545,7 +563,9 @@ void Diff::compress(BitStream &bstream, bool write_size) const
     auto size_pos = bstream.pos();
 
     if(write_size)
+    {
         bstream << size;
+    }
 
     Writer writer(bstream);
 
@@ -554,13 +574,21 @@ void Diff::compress(BitStream &bstream, bool write_size) const
     view >> type;
 
     if(type == DiffType::Modified)
+    {
         writer.write_string("type", "modified");
+    }
     else if(type == DiffType::Deleted)
+    {
         writer.write_string("type", "deleted");
+    }
     else if(type == DiffType::Added)
+    {
         writer.write_string("type", "added");
+    }
     else
+    {
         throw std::runtime_error("Unknown diff type");
+    }
 
     std::string path;
     view >> path;
@@ -570,7 +598,9 @@ void Diff::compress(BitStream &bstream, bool write_size) const
     {
         auto key = "value";
         if(type == DiffType::Modified)
+        {
             key = "new_value";
+        }
 
         uint32_t len = 0;
         view >> len;
@@ -592,7 +622,6 @@ void Diff::compress(BitStream &bstream, bool write_size) const
 }
 
 String::String(const std::string &str)
-    : Document()
 {
     uint32_t length = str.size();
     m_content << ObjectType::String;
@@ -605,7 +634,6 @@ String::String(const std::string &str)
 }
 
 Integer::Integer(const integer_t i)
-    : Document()
 {
     m_content << ObjectType::Integer;
     m_content << i;

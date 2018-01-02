@@ -34,8 +34,8 @@ public:
     }
 
     void write_null(const std::string &key);
-    void write_binary(const std::string &key, const BitStream &binary);
-    void write_boolean(const std::string &key, const bool boolean);
+    void write_binary(const std::string &key, const BitStream &value);
+    void write_boolean(const std::string &key, const bool value);
     void write_datetime(const std::string &key, const tm &value);
     void write_integer(const std::string &key, const integer_t &value);
     void write_string(const std::string &key, const std::string &value);

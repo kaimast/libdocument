@@ -39,7 +39,7 @@ public:
     void handle_map_start(const std::string &key) override;
     void handle_boolean(const std::string &key, const bool value) override;
     void handle_null(const std::string &key) override;
-    void handle_datetime(const std::string &key, const tm& val) override;
+    void handle_datetime(const std::string &key, const tm& value) override;
     void handle_map_end() override;
     void handle_array_start(const std::string &key) override;
     void handle_array_end() override;
@@ -84,13 +84,13 @@ public:
 
     void handle_key(const std::string &key);
 
-    void handle_string(const std::string &key, const std::string &str) override;
-    void handle_integer(const std::string &key, const integer_t i) override;
-    void handle_float(const std::string &key, const json::float_t d) override;
+    void handle_string(const std::string &key, const std::string &value) override;
+    void handle_integer(const std::string &key, const integer_t value) override;
+    void handle_float(const std::string &key, const json::float_t value) override;
     void handle_map_start(const std::string &key) override;
     void handle_boolean(const std::string &key, const bool value) override;
     void handle_null(const std::string &key) override;
-    void handle_datetime(const std::string &key, const tm& val) override;
+    void handle_datetime(const std::string &key, const tm& value) override;
     void handle_map_end() override;
     void handle_array_start(const std::string &key) override;
     void handle_array_end() override;
@@ -111,7 +111,7 @@ class DocumentPrettyPrinter : public json::Iterator
 {
 public:
     DocumentPrettyPrinter(int indent);
-    void handle_string(const std::string &key, const std::string &str) override;
+    void handle_string(const std::string &key, const std::string &value) override;
     void handle_integer(const std::string &key, const json::integer_t value) override;
     void handle_float(const std::string &key, const json::float_t value) override;
     void handle_map_start(const std::string &key) override;

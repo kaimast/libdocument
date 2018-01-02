@@ -11,7 +11,7 @@ namespace json
 class Parser
 {
 public:
-    Parser(const std::string &input, BitStream &result);
+    Parser(const std::string &str_, BitStream &result_);
 
     void do_parse();
 
@@ -31,7 +31,7 @@ private:
 
     std::string read_string();
 
-    bool check_string(const std::string &str);
+    bool check_string(const std::string &value);
 
     const std::string &str;
     std::string::const_iterator it;

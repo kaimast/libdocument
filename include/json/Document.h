@@ -16,7 +16,7 @@ namespace json
 class Document
 {
 public:
-    Document(Document &&other);
+    Document(Document &&other) noexcept;
 
     /// Filter parent by a set of paths
     Document(const Document &parent, const std::vector<std::string> &paths, bool force = false);
@@ -31,7 +31,7 @@ public:
     Document(const uint8_t *data, uint32_t length, DocumentMode mode);
     Document(uint8_t *data, uint32_t length, DocumentMode mode);
 
-    ~Document();
+    ~Document() = default;
 
     void assign(BitStream &&data)
     {
