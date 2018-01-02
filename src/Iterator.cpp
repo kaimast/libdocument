@@ -7,368 +7,6 @@ using std::to_string;
 namespace json
 {
 
-PredicateChecker::PredicateChecker(const json::Document &document)
-    : m_pred_matches(false), m_pred_values(), m_document(document), m_matched(true)
-{
-}
-
-bool PredicateChecker::get_result() const
-{
-    return m_matched;
-}
-
-void PredicateChecker::push_path(const std::string &path)
-{
-    if(path == "")
-    {
-        assert(m_path.size() == 0);
-        return;
-    }
-
-    size_t pos = 0;
-    size_t last_pos = 0;
-    size_t count = 1;
-
-    // Split up condensed paths...
-    while((pos = path.find_first_of('.', last_pos)) != std::string::npos)
-    {
-        const std::string key = path.substr(last_pos, pos-last_pos);
-        last_pos = pos+1;
-
-        push_key(key);
-        count++;
-    }
-
-    const std::string last_key = path.substr(last_pos, std::string::npos);
-    push_key(last_key);
-
-    m_path_sizes.push(count);
-}
-
-void PredicateChecker::push_key(const std::string &key)
-{
-    assert(key != "");
-
-    if(key == keyword(IN))
-    {
-        m_mode.push_back(predicate_mode::IN);
-
-        m_pred_matches = false;
-        m_pred_values.clear();
-
-        for(auto &path: path_strings(m_path, m_document))
-        {
-            json::Document view(m_document, path, false);
-
-            pred_value val;
-            val.type = view.get_type();
-
-            switch(val.type)
-            {
-            case ObjectType::Integer:
-                val.integer = view.as_integer();
-                break;
-            case ObjectType::String:
-                val.str = view.as_string();
-                break;
-            case ObjectType::Float:
-                val.floating = view.as_float();
-                break;
-            default:
-                val.type = ObjectType::Null;
-                break;
-            }
-
-            m_pred_values.push_back(val);
-        }
-    }
-    else if(key == keyword(GREATER_THAN_EQUAL) || key == keyword(LESS_THAN))
-    {
-        if(key == keyword(LESS_THAN))
-            m_mode.push_back(predicate_mode::LESS_THAN);
-        else
-            m_mode.push_back(predicate_mode::GREATER_THAN_EQUAL);
-
-        m_pred_values.clear();
-        m_pred_matches = false;
-
-        for(auto &path: path_strings(m_path, m_document))
-        {
-            json::Document view(m_document, path, false);
-
-            pred_value val;
-            val.type = view.get_type();
-
-            switch(val.type)
-            {
-            case ObjectType::Integer:
-                val.integer = view.as_integer();
-                break;
-            case ObjectType::Float:
-                val.floating = view.as_float();
-                break;
-            case ObjectType::String:
-                val.str = view.as_string();
-                break;
-            default:
-                val.type = ObjectType::Null;
-                break;
-            }
-
-            m_pred_values.push_back(val);
-        }
-    }
-    else
-    {
-        m_mode.push_back(predicate_mode::NORMAL);
-    }
-
-    m_path.push_back(key);
-}
-
-void PredicateChecker::pop_path()
-{
-    if(m_path_sizes.empty())
-        return;
-
-    size_t count = m_path_sizes.top();
-    m_path_sizes.pop();
-
-    if(m_path.size() < count || m_path.size() != m_mode.size())
-        throw std::runtime_error("invalid state");
-
-    for(size_t i = 0; i < count; ++i)
-    {
-        if(m_mode.back() != predicate_mode::NORMAL)
-        {
-            if(!m_pred_matches)
-                m_matched = false;
-        }
-
-        m_path.pop_back();
-        m_mode.pop_back();
-    }
-}
-
-void PredicateChecker::handle_binary(const std::string &key, const uint8_t *data, uint32_t len)
-{   
-    (void)key;
-    (void)data;
-    (void)len;
-    //FIXME binary predicates?
-}
-
-void PredicateChecker::handle_string(const std::string &key, const std::string &value)
-{
-    push_path(key);
-
-    if(mode() == predicate_mode::NORMAL)
-    {
-        bool found = false;
-
-        for(auto &path: path_strings(m_path, m_document))
-        {
-            Document view(m_document, path, false);
-
-            if(view.empty() || view.get_type() != ObjectType::String)
-            {
-                continue;
-            }
-
-            std::string other = view.as_string();
-            if(other == value)
-                found = true;
-        }
-
-        if(!found)
-            m_matched = false;
-    }
-    else
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::String && val.str == value)
-                m_pred_matches = true;
-        }
-    }
-
-    pop_path();
-}
-
-void PredicateChecker::handle_integer(const std::string &key, const integer_t value)
-{
-    push_path(key);
-
-    if(mode() == predicate_mode::NORMAL)
-    {
-        bool found = false;
-
-        for(auto &path : path_strings(m_path, m_document))
-        {
-            Document view(m_document, path, false);
-
-            if(view.empty() || view.get_type() != ObjectType::Integer)
-            {
-                continue;
-            }
-
-            integer_t other = view.as_integer();
-            if(other == value)
-                found = true;
-        }
-
-        if(!found)
-            m_matched = false;
-    }
-    else if(mode() == predicate_mode::IN)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Integer && val.integer == value)
-                m_pred_matches = true;
-        }
-    }
-    else if(mode() == predicate_mode::LESS_THAN)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Float && val.floating < value)
-                m_pred_matches = true;
-            else if(val.type == ObjectType::Integer && val.integer < value)
-                m_pred_matches = true;
-        }
-    }
-    else if(mode() == predicate_mode::GREATER_THAN_EQUAL)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Float && val.floating >= value)
-                m_pred_matches = true;
-            else if(val.type == ObjectType::Integer && val.integer >= value)
-                m_pred_matches = true;
-        }
-    }
-
-    pop_path();
-}
-
-void PredicateChecker::handle_float(const std::string &key, const json::float_t value)
-{
-    push_path(key);
-
-    if(mode() == predicate_mode::NORMAL)
-    {
-        Document view(m_document, path_string(m_path), false);
-
-        if(view.empty() || view.get_type() != ObjectType::Float)
-        {
-            m_matched = false;
-        }
-        else
-        {
-            json::float_t other = view.as_float();
-            if(other != value)
-                m_matched = false;
-        }
-    }
-    else if(mode() == predicate_mode::IN)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Float && val.floating == value)
-                m_pred_matches = true;
-            else if(val.type == ObjectType::Integer && val.integer == value)
-                m_pred_matches = true;
-        }
-    }
-    else if(mode() == predicate_mode::LESS_THAN)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Float && val.floating < value)
-                m_pred_matches = true;
-            else if(val.type == ObjectType::Integer && val.integer < value)
-                m_pred_matches = true;
-        }
-    }
-    else if(mode() == predicate_mode::GREATER_THAN_EQUAL)
-    {
-        for(auto &val: m_pred_values)
-        {
-            if(val.type == ObjectType::Float && val.floating >= value)
-                m_pred_matches = true;
-            else if(val.type == ObjectType::Integer && val.integer >= value)
-                m_pred_matches = true;
-        }
-    }
-
-    pop_path();
-}
-
-void PredicateChecker::handle_map_start(const std::string &key)
-{
-    push_path(key);
-}
-
-void PredicateChecker::handle_boolean(const std::string &key, const bool value)
-{
-    push_path(key);
-
-    Document view(m_document, path_string(m_path), false);
-
-    if(view.empty() || (view.get_type() != ObjectType::True && view.get_type() != ObjectType::False))
-    {
-        m_matched = false;
-    }
-    else
-    {
-        bool other = view.as_boolean();
-        if(other != value)
-            m_matched = false;
-    }
-
-    pop_path();
-}
-
-void PredicateChecker::handle_null(const std::string &key)
-{
-    //FIXME
-    (void)key;
-}
-
-void PredicateChecker::handle_datetime(const std::string &key, const tm& val)
-{
-    //FIXME
-    (void)key;
-    (void)val;
-}
-
-void PredicateChecker::handle_map_end()
-{
-    pop_path();
-}
-
-void PredicateChecker::handle_array_start(const std::string &key)
-{
-    push_path(key);
-}
-
-void PredicateChecker::handle_array_end()
-{
-    pop_path();
-}
-
-PredicateChecker::predicate_mode PredicateChecker::mode() const
-{
-    for(auto &m : m_mode)
-    {
-        if(m != predicate_mode::NORMAL)
-            return m;
-    }
-
-    return predicate_mode::NORMAL;
-}
-
 void Printer::handle_key(const std::string &key)
 {
     const auto& m = mode.top();
@@ -398,7 +36,9 @@ void Printer::handle_key(const std::string &key)
         result += ",";
     }
     else
+    {
         throw std::runtime_error("Unknown parse mode");
+    }
 }
 
 void Printer::handle_string(const std::string &key, const std::string &str)
@@ -447,10 +87,15 @@ void Printer::handle_binary(const std::string &key, const uint8_t *data, uint32_
 void Printer::handle_boolean(const std::string &key, const bool value)
 {
     handle_key(key);
+
     if(value)
+    {
         result += keyword(TRUE);
+    }
     else
+    {
         result += keyword(FALSE);
+    }
 }
 
 void Printer::handle_null(const std::string &key)
@@ -488,143 +133,6 @@ void Printer::handle_array_end()
     mode.pop();
 }
 
-DocumentPrettyPrinter::DocumentPrettyPrinter(int indent):
-    m_indent(indent), m_current_indent(0), m_is_first(true)
-{}
-
-void DocumentPrettyPrinter::handle_string(const std::string &key, const std::string &str)
-{
-    print_indent();
-    print_key(key);
-    m_res += '\"';
-    m_res += str;
-    m_res += '\"';
-}
-
-void DocumentPrettyPrinter::handle_integer(const std::string &key, const json::integer_t value)
-{
-    print_indent();
-    print_key(key);
-    m_res += to_string(value);
-}
-
-void DocumentPrettyPrinter::handle_float(const std::string &key, const json::float_t value)
-{
-    print_indent();
-    print_key(key);
-    m_res += to_string(value);
-}
-
-void DocumentPrettyPrinter::handle_map_start(const std::string &key)
-{
-    print_indent();
-    print_key(key);
-    m_res += "{\n";
-    indent();
-    m_is_first = true;
-    m_is_array.push(false);
-}
-
-void DocumentPrettyPrinter::handle_boolean(const std::string &key, const bool value)
-{
-    print_indent();
-    print_key(key);
-    m_res += (value ? "true" : "false");
-}
-
-void DocumentPrettyPrinter::handle_null(const std::string &key)
-{
-    print_indent();
-    print_key(key);
-    m_res += "null";
-}
-
-void DocumentPrettyPrinter::handle_map_end()
-{
-    unindent();
-    m_res += '\n';
-    m_is_first = true;
-    print_indent();
-    m_res += '}';
-    m_is_array.pop();
-}
-
-void DocumentPrettyPrinter::handle_array_start(const std::string &key)
-{
-    print_indent();
-    print_key(key);
-    m_res += "[\n";
-    indent();
-    m_is_first = true;
-    m_is_array.push(true);
-}
-
-void DocumentPrettyPrinter::handle_array_end()
-{
-    unindent();
-    m_res += '\n';
-    m_is_first = true;
-    print_indent();
-    m_res += ']';
-    m_is_array.pop();
-}
-
-void DocumentPrettyPrinter::handle_binary(const std::string &key, const uint8_t *data, uint32_t size)
-{
-    (void)data;
-
-    print_indent();
-    print_key(key);
-    m_res += "<binary data, length ";
-    m_res += to_string(size);
-    m_res += '>';
-}
-
-void DocumentPrettyPrinter::handle_datetime(const std::string &key, const tm& val)
-{
-    print_indent();
-    print_key(key);
-    m_res += to_string(val.tm_year, 4) + "-" + to_string(val.tm_mon, 2) + "-" + to_string(val.tm_mday, 2);
-    m_res += " " + to_string(val.tm_hour, 2) + ":" + to_string(val.tm_min, 2) + ":" + to_string(val.tm_sec, 2);
-}
-
-void DocumentPrettyPrinter::print_key(const std::string &key)
-{
-    if(key.empty())
-        return;
-
-    if(m_is_array.top() == true)
-        return;
-    
-    m_res += '\"';
-    m_res += key;
-    m_res += "\": ";
-}
-
-void DocumentPrettyPrinter::print_indent()
-{
-    if (m_is_first)
-    {
-        m_is_first = false;
-    }
-    else
-    {
-        m_res += ",\n";
-    }
-    for (int i = 0; i < m_current_indent; ++i)
-        m_res += ' ';
-}
-
-void DocumentPrettyPrinter::indent()
-{
-    m_current_indent += m_indent;
-}
-
-void DocumentPrettyPrinter::unindent()
-{
-    m_current_indent -= m_indent;
-}
-
 IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator_)
     : iterator(iterator_)
 {
@@ -634,7 +142,9 @@ IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator
 void IterationEngine::run()
 {
     if(view.size() > 0)
+    {
         parse_next("");
+    }
 }
 
 void IterationEngine::parse_next(const std::string &key)
@@ -707,7 +217,9 @@ void IterationEngine::parse_next(const std::string &key)
         break;
     }
     default:
+    {
         throw std::runtime_error("Document Iteration failed: unknown object type");
+    }
     }
 }
 

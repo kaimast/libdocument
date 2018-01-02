@@ -11,7 +11,7 @@ if get_option('use_geo') == true
     compile_args = compile_args + ['-DUSE_GEO']
 endif
 
-cpp_files =  ['src/Parser.cpp', 'src/Iterator.cpp', 'src/Writer.cpp', 'src/Document.cpp']
+subdir('src')
 
 doc = shared_library('document', cpp_files, include_directories: inc_dirs, install: true, cpp_args: compile_args)
 doc_dep = declare_dependency(link_with: doc)
