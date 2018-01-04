@@ -48,12 +48,17 @@ inline void skip_child(BitStream &view)
 
 Document::Document(const std::string &str)
 {
-    if(!str.empty())
+    if(str.empty())
+    {
+        m_content << ObjectType::Null;
+    }
+    else
     {
         Parser parser(str, m_content);
         parser.do_parse();
-        m_content.move_to(0);
     }
+
+    m_content.move_to(0);
 }
 
 Document::Document(Document &&other) noexcept

@@ -30,6 +30,11 @@ public:
 
     void write_document(const std::string &key, const json::Document &other)
     {
+        if(!other.valid())
+        {
+            throw std::runtime_error("not a valid document!");
+        }
+
         write_raw_data(key, other.data().data(), other.data().size());
     }
 
@@ -45,15 +50,7 @@ public:
     void write_vector2(const std::string &key, const geo::vector2d &vec);
 #endif
 
-    json::Document make_document()
-    {
-        uint8_t *data;
-        uint32_t len;
-        m_result.detach(data, len);
-
-        return json::Document(data, len, DocumentMode::ReadWrite);
-    }
-
+    json::Document make_document();
 private:
     void handle_key(const std::string &key);
     void check_end();

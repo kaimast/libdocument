@@ -5,11 +5,21 @@
 
 using namespace json;
 
-class JsonTest : public testing::Test
+class Basic : public testing::Test
 {
 };
 
-TEST(JsonTest, compress_two)
+TEST(Basic, empty)
+{
+    json::Document invalid;
+    json::Document doc("");
+
+    EXPECT_FALSE(invalid.valid());
+    EXPECT_TRUE(doc.valid());
+    EXPECT_TRUE(doc.empty());
+}
+
+TEST(Basic, compress_two)
 {
     Document input1("{\"a\":1}");
     Document input2("{\"a\":2}");
@@ -26,7 +36,7 @@ TEST(JsonTest, compress_two)
     EXPECT_EQ(input2.str(), output2.str());
 }
 
-TEST(JsonTest, binary)
+TEST(Basic, binary)
 {
     constexpr uint32_t length = 1235;
     uint8_t value[length];
@@ -41,7 +51,7 @@ TEST(JsonTest, binary)
     EXPECT_EQ(memcmp(view.as_bitstream().data(), value, length), 0);
 }
 
-TEST(JsonTest, binary2)
+TEST(Basic, binary2)
 {
     BitStream bs;
     bs << "This is only a test";
@@ -56,7 +66,7 @@ TEST(JsonTest, binary2)
     EXPECT_EQ(view.as_bitstream(), bs);
 }
 
-TEST(JsonTest, datetime)
+TEST(Basic, datetime)
 {
     std::string str = "d\"1955-11-05 12:00:00\"";
     Document input(str);
@@ -71,13 +81,13 @@ TEST(JsonTest, datetime)
     EXPECT_EQ(input.str(), str);
 }
 
-TEST(JsonTest, boolean)
+TEST(Basic, boolean)
 {
     Document input("true");
     EXPECT_EQ(input.str(), "true");
 }
 
-TEST(JsonTest, map)
+TEST(Basic, map)
 {
     Document doc("{\"a\":\"b\", \"c\":1}");
 
@@ -91,7 +101,7 @@ TEST(JsonTest, map)
     EXPECT_EQ(doc2.str(), "{\"a\":\"b\",\"c\":1}");
 }
 
-TEST(JsonTest, array)
+TEST(Basic, array)
 {
     Document doc("[1,2,3]");
 
@@ -104,7 +114,7 @@ TEST(JsonTest, array)
     EXPECT_EQ(doc2.str(), doc.str());
 }
 
-TEST(JsonTest, nested_map)
+TEST(Basic, nested_map)
 {
     Document doc("{\"a\":{\"b\":42}}");
 
@@ -117,7 +127,7 @@ TEST(JsonTest, nested_map)
     EXPECT_EQ(doc2.str(), doc.str());
 }
 
-TEST(JsonTest, array_in_map)
+TEST(Basic, array_in_map)
 {
     Document doc("{\"a\":[\"b\",42]}");
 
@@ -130,7 +140,7 @@ TEST(JsonTest, array_in_map)
     EXPECT_EQ(doc2.str(), doc.str());
 }
 
-TEST(JsonTest, cannot_append_to_non_array)
+TEST(Basic, cannot_append_to_non_array)
 {
     Document doc("{\"a\":[4,3,2], \"b\":{}}");
     bool result = doc.insert("b.+", json::Document("23"));
@@ -139,17 +149,19 @@ TEST(JsonTest, cannot_append_to_non_array)
     EXPECT_EQ(doc.str(), "{\"a\":[4,3,2],\"b\":{}}");
 }
 
-TEST(JsonTest, array_nested_multi_append)
+TEST(Basic, array_nested_multi_append)
 {
     Document doc("{\"b\":\"xyz\",\"a\":{\"foo\":[4,3,2]}, \"bar\": 1337}");
 
     for(auto i = 0; i < 5; ++i)
+    {
         doc.insert("a.foo.+", json::Document("23"));
+    }
 
     EXPECT_EQ(doc.str(), "{\"b\":\"xyz\",\"a\":{\"foo\":[4,3,2,23,23,23,23,23]},\"bar\":1337}");
 }
 
-TEST(JsonTest, array_nested_pppend)
+TEST(Basic, array_nested_pppend)
 {
     Document doc("{\"b\":\"xyz\",\"a\":{\"foo\":[4,3,2]}, \"bar\": 1337}");
     bool result = doc.insert("a.foo.+", json::Document("23"));
@@ -157,7 +169,7 @@ TEST(JsonTest, array_nested_pppend)
     EXPECT_TRUE(result);
     EXPECT_EQ(doc.str(), "{\"b\":\"xyz\",\"a\":{\"foo\":[4,3,2,23]},\"bar\":1337}");
 }
-TEST(JsonTest, array_append)
+TEST(Basic, array_append)
 {
     Document doc("{\"b\":\"xyz\",\"a\":[4,3,2]}");
     bool result = doc.insert("a.+", json::Document("23"));
@@ -166,14 +178,14 @@ TEST(JsonTest, array_append)
     EXPECT_EQ(doc.str(), "{\"b\":\"xyz\",\"a\":[4,3,2,23]}");
 }
 
-TEST(JsonTest, update)
+TEST(Basic, update)
 {
     Document doc("{\"a\":42}");
     doc.insert("a", json::Document("23"));
     EXPECT_EQ(doc.str(), "{\"a\":23}");
 }
 
-TEST(JsonTest, array_predicate)
+TEST(Basic, array_predicate)
 {
     Document doc("{\"a\":[5,4,{\"c\":3}]}");
 
@@ -186,7 +198,7 @@ TEST(JsonTest, array_predicate)
     EXPECT_TRUE(doc.matches_predicates(predicate3));
 }
 
-TEST(JsonTest, set_predicate)
+TEST(Basic, set_predicate)
 {
     Document doc1("{\"id\":42}");
     Document doc2("{\"id\":\"whatever\"}");
@@ -199,7 +211,7 @@ TEST(JsonTest, set_predicate)
     EXPECT_TRUE(doc3.matches_predicates(predicate));
 }
 
-TEST(JsonTest, wildcard_predicate)
+TEST(Basic, wildcard_predicate)
 {
     Document doc1("{\"a\":[1,3,4]}");
     Document doc2("{\"a\":[2,5,{\"b\":42}]}");
@@ -214,7 +226,7 @@ TEST(JsonTest, wildcard_predicate)
     EXPECT_TRUE(doc2.matches_predicates(predicate3));
 }
 
-TEST(JsonTest, filter)
+TEST(Basic, filter)
 {
     Document doc("{\"a\":41, \"b\":42, \"c\": 42}");
 
@@ -223,7 +235,7 @@ TEST(JsonTest, filter)
     EXPECT_EQ(filtered.str(), "{\"b\":42}");
 }
 
-TEST(JsonTest, wildcard_filter)
+TEST(Basic, wildcard_filter)
 {
     Document doc("{\"a\":[{\"b\":41,\"c\":42},{\"b\":43,\"c\":42}]}");
 
@@ -232,7 +244,7 @@ TEST(JsonTest, wildcard_filter)
     EXPECT_EQ(filtered.str(), "{\"a\":[{\"b\":41},{\"b\":43}]}");
 }
 
-TEST(JsonTest, wildcard_filter_nested)
+TEST(Basic, wildcard_filter_nested)
 {
     Document doc("{\"a\":[{\"b\":{\"c\":42}}]}");
 
@@ -241,7 +253,7 @@ TEST(JsonTest, wildcard_filter_nested)
     EXPECT_EQ(filtered.str(), "{\"a\":[{\"b\":{\"c\":42}}]}");
 }
 
-TEST(JsonTest, get_key)
+TEST(Basic, get_key)
 {
     Document doc("{\"a\":42, \"b\": \"foobar\"}");
    
@@ -249,7 +261,7 @@ TEST(JsonTest, get_key)
     EXPECT_EQ(doc.get_key(1), "b");
 }
 
-TEST(JsonTest, get_child)
+TEST(Basic, get_child)
 {
     Document doc("{\"a\":42, \"b\": \"foobar\"}");
    
@@ -257,7 +269,7 @@ TEST(JsonTest, get_child)
     EXPECT_EQ(doc.get_child(1).as_string(), "foobar");
 }
 
-TEST(JsonTest, add)
+TEST(Basic, add)
 {
     Document doc("{\"a\":42}");
     Document to_add("5");
@@ -268,7 +280,7 @@ TEST(JsonTest, add)
     EXPECT_EQ(doc.str(), "{\"a\":47}");
 }
 
-TEST(JsonTest, insert)
+TEST(Basic, insert)
 {
     Document doc("{\"a\":42}");
     bool result = doc.insert("b", json::Document("23"));
@@ -277,7 +289,7 @@ TEST(JsonTest, insert)
     EXPECT_EQ(doc.str(), "{\"a\":42,\"b\":23}");
 }
 
-TEST(JsonTest, view)
+TEST(Basic, view)
 {
     Document doc("{\"a\":{\"b\":[1,2,4,5]}}");
     Document view(doc, "a.b");
@@ -285,7 +297,7 @@ TEST(JsonTest, view)
     EXPECT_EQ(view.str(), "[1,2,4,5]");
 }
 
-TEST(JsonTest, array_view)
+TEST(Basic, array_view)
 {
     Document doc("{\"a\":[1,2,{\"b\":[42,23]},5]}}");
     Document view(doc, "a.2.b");
@@ -293,7 +305,7 @@ TEST(JsonTest, array_view)
     EXPECT_EQ(view.str(), "[42,23]");
 }
 
-TEST(JsonTest, view2)
+TEST(Basic, view2)
 {
     Document doc("{\"a\":{\"b\":[1,2,4,5]},\"c\":42}");
 
@@ -301,7 +313,7 @@ TEST(JsonTest, view2)
     EXPECT_EQ(view.str(), "42");
 }
 
-TEST(JsonTest, no_diffs)
+TEST(Basic, no_diffs)
 {
     Document doc1("{\"a\":42}");
     Document doc2("{\"a\":42}");
@@ -310,7 +322,7 @@ TEST(JsonTest, no_diffs)
     EXPECT_EQ(diffs.size(), 0);
 }
 
-TEST(JsonTest, diffs)
+TEST(Basic, diffs)
 {
     Document doc1("{\"a\":1}");
     Document doc2("{\"a\":2}");
@@ -321,7 +333,7 @@ TEST(JsonTest, diffs)
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
 }
 
-TEST(JsonTest, compress_diffs)
+TEST(Basic, compress_diffs)
 {
     Document doc1("{\"a\":1}");
     Document doc2("{\"a\":2}");
@@ -337,7 +349,7 @@ TEST(JsonTest, compress_diffs)
     EXPECT_EQ(doc, json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
 }
 
-TEST(JsonTest, diffs_str)
+TEST(Basic, diffs_str)
 {
     Document doc1("{\"a\":\"here\"}");
     Document doc2("{\"a\":\"we go\"}");
@@ -348,7 +360,7 @@ TEST(JsonTest, diffs_str)
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":\"we go\"}"));
 }
 
-TEST(JsonTest, diff_deleted)
+TEST(Basic, diff_deleted)
 {
     Document doc1("{\"a\":\"here\"}");
     Document doc2("{}");
@@ -359,7 +371,7 @@ TEST(JsonTest, diff_deleted)
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"deleted\",\"path\":\"a\"}"));
 }
 
-TEST(JsonTest, diff_added)
+TEST(Basic, diff_added)
 {
     Document doc1("{\"a\":\"here\"}");
     Document doc2("{\"a\":\"here\",\"b\":\"we go\"}");
@@ -370,7 +382,7 @@ TEST(JsonTest, diff_added)
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"b\",\"value\":\"we go\"}"));
 }
 
-TEST(JsonTest, diff_added_array)
+TEST(Basic, diff_added_array)
 {
     Document doc1("[\"here\"]");
     Document doc2("[\"here\",\"we go\"]");
@@ -381,7 +393,7 @@ TEST(JsonTest, diff_added_array)
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"1\",\"value\":\"we go\"}"));
 }
 
-TEST(JsonTest, cant_put_path)
+TEST(Basic, cant_put_path)
 {
     json::String doc("str");
 
@@ -391,7 +403,7 @@ TEST(JsonTest, cant_put_path)
     EXPECT_EQ(doc.str(), "\"str\"");
 }
 
-TEST(JsonTest, match_predicates)
+TEST(Basic, match_predicates)
 {
     json::Document doc("{\"NO_D_ID\":1,\"NO_W_ID\":4,\"NO_O_ID\":300}");
     json::Document predicates("{\"NO_D_ID\":1,\"NO_W_ID\":4}");

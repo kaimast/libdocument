@@ -41,7 +41,9 @@ doc_sgx = static_library('document_sgx', cpp_files,
     include_directories: [sgx_incdir, sgx_tlibc_incdir, sgx_stdcxx_incdir, inc_dirs], install: true)
 
 
-e = executable('libdocument-test', ['test/main.cpp', 'test/json.cpp'], dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
+subdir('test')
+
+e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
 test('libdocument-test', e)
 
 install_subdir('include/json', install_dir : 'include')

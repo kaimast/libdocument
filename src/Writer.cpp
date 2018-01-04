@@ -17,6 +17,22 @@ Writer::~Writer()
     delete m_result_ptr;
 }
 
+json::Document Writer::make_document()
+{
+    if(m_result.empty())
+    {
+        m_result << ObjectType::Null;
+    }
+
+    uint8_t *data;
+    uint32_t len;
+    m_result.detach(data, len);
+
+    return json::Document(data, len, DocumentMode::ReadWrite);
+}
+
+
+
 void Writer::start_array(const std::string &key)
 {
     handle_key(key);
@@ -204,7 +220,7 @@ void Writer::handle_key(const std::string &key)
 
     auto size = m_sizes.top();
     m_sizes.pop();
-    m_sizes.push(size + 1);
+    m_sizes.push(size+1);
 
     if(m_mode.top() == IN_MAP)
     {

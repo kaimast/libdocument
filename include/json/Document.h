@@ -25,7 +25,16 @@ public:
     Document(const Document &parent, const uint32_t pos);
     Document(const Document &parent, const std::string &path, bool force = false);
 
+    /**
+     * Creates an empty and invalid object
+     */
+    Document() = default;
+
     explicit Document(BitStream &data);
+
+    /**
+     * Creates an object from a JSON string
+     */
     explicit Document(const std::string& str);
 
     Document(const uint8_t *data, uint32_t length, DocumentMode mode);
@@ -38,9 +47,15 @@ public:
         m_content = std::move(data);
     }
 
+    bool valid() const
+    {
+        //TODO more checks
+        return !m_content.empty();
+    }
+
     bool empty() const
     {
-        return m_content.size() == 0;
+        return get_type() == ObjectType::Null;
     }
 
     ObjectType get_type() const;
@@ -140,8 +155,6 @@ public:
     Diffs diff(const Document &other) const;
 
 protected:
-    Document() {}
-
     BitStream m_content;
 };
 
