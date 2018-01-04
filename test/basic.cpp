@@ -19,6 +19,15 @@ TEST(Basic, empty)
     EXPECT_TRUE(doc.empty());
 }
 
+TEST(Basic, invalid)
+{
+    uint8_t garbage[42];
+    garbage[0] = static_cast<uint8_t>(ObjectType::Null);
+
+    json::Document invalid(garbage, 42, DocumentMode::ReadOnly);
+    EXPECT_FALSE(invalid.valid());
+}
+
 TEST(Basic, compress_two)
 {
     Document input1("{\"a\":1}");

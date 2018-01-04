@@ -47,11 +47,7 @@ public:
         m_content = std::move(data);
     }
 
-    bool valid() const
-    {
-        //TODO more checks
-        return !m_content.empty();
-    }
+    bool valid() const;
 
     bool empty() const
     {

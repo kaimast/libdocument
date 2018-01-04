@@ -10,15 +10,17 @@ namespace json
 IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator_)
     : iterator(iterator_)
 {
+    if(data.empty())
+    {
+        throw std::runtime_error("Not a valid object!");
+    }
+
     view.assign(data.data(), data.size(), true);
 }
 
 void IterationEngine::run()
 {
-    if(!view.empty())
-    {
-        parse_next("");
-    }
+    parse_next("");
 }
 
 void IterationEngine::parse_next(const std::string &key)

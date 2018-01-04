@@ -78,6 +78,22 @@ Document::Document(BitStream &data)
     m_content.move_to(0);
 }
 
+bool Document::valid() const
+{
+    if(m_content.empty())
+    {
+        return false;
+    }
+
+    // Only check the top level element
+    // Tradeoff between performance and safety
+    BitStream view;
+    view.assign(m_content.data(), m_content.size(), true);
+    skip_child(view);
+
+    return view.at_end();
+}
+
 bool Document::matches_predicates(const json::Document &predicates) const
 {
     if(predicates.empty())
