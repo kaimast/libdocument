@@ -28,7 +28,7 @@ public:
         }
     }
 
-    uint32_t do_search(BitStream &result)
+    uint32_t do_search(bitstream &result)
     {
         json::Writer writer(result);
 
@@ -146,7 +146,7 @@ private:
 private:
     const json::Document &m_document;
 
-    BitStream m_view;
+    bitstream m_view;
     std::vector<std::vector<std::string>> m_target_paths; //FIXME preserve order
     std::vector<std::string> m_current_path;
     const bool m_write_path;

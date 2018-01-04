@@ -8,14 +8,14 @@ namespace json
 class IterationEngine
 {
 public:
-    IterationEngine(const BitStream &data, Iterator &iterator_);
+    IterationEngine(const bitstream &data, Iterator &iterator_);
 
     void run();
 
     void parse_next(const std::string &key);
 
 private:
-    BitStream view;
+    bitstream view;
     Iterator &iterator;
 
     void handle_map(const std::string &key);

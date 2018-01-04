@@ -6,7 +6,7 @@ using std::to_string;
 namespace json
 {
 
-Parser::Parser(const std::string& str_, BitStream &result_)
+Parser::Parser(const std::string& str_, bitstream &result_)
     : str(str_), writer(result_)
 {
     it = str.begin();

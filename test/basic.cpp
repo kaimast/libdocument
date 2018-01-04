@@ -33,7 +33,7 @@ TEST(Basic, compress_two)
     Document input1("{\"a\":1}");
     Document input2("{\"a\":2}");
 
-    BitStream bstream;
+    bitstream bstream;
     input1.compress(bstream);
     input2.compress(bstream);
 
@@ -62,7 +62,7 @@ TEST(Basic, binary)
 
 TEST(Basic, binary2)
 {
-    BitStream bs;
+    bitstream bs;
     bs << "This is only a test";
 
     json::Binary bin(bs);
@@ -80,7 +80,7 @@ TEST(Basic, datetime)
     std::string str = "d\"1955-11-05 12:00:00\"";
     Document input(str);
 
-    BitStream bstream;
+    bitstream bstream;
     input.compress(bstream);
 
     bstream.move_to(0);
@@ -100,7 +100,7 @@ TEST(Basic, map)
 {
     Document doc("{\"a\":\"b\", \"c\":1}");
 
-    BitStream bstream;
+    bitstream bstream;
     doc.compress(bstream);
 
     bstream.move_to(0);
@@ -114,7 +114,7 @@ TEST(Basic, array)
 {
     Document doc("[1,2,3]");
 
-    BitStream bstream;
+    bitstream bstream;
     doc.compress(bstream);
 
     bstream.move_to(0);
@@ -127,7 +127,7 @@ TEST(Basic, nested_map)
 {
     Document doc("{\"a\":{\"b\":42}}");
 
-    BitStream bstream;
+    bitstream bstream;
     doc.compress(bstream);
 
     bstream.move_to(0);
@@ -140,7 +140,7 @@ TEST(Basic, array_in_map)
 {
     Document doc("{\"a\":[\"b\",42]}");
 
-    BitStream bstream;
+    bitstream bstream;
     doc.compress(bstream);
 
     bstream.move_to(0);
@@ -349,7 +349,7 @@ TEST(Basic, compress_diffs)
 
     auto diffs = doc1.diff(doc2);
 
-    BitStream bstream;
+    bitstream bstream;
     diffs.begin()->compress(bstream, true);
 
     bstream.move_to(0);

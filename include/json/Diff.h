@@ -3,7 +3,7 @@
 #include <list>
 
 #include "defines.h"
-#include "BitStream.h"
+#include "bitstream.h"
 
 namespace json
 {
@@ -25,17 +25,17 @@ public:
         : m_content(std::move(other.m_content))
     {}
 
-    const BitStream& content() const
+    const bitstream& content() const
     {
         return m_content;
     }
 
     json::Document as_document() const;
 
-    void compress(BitStream &bstream, bool write_size = true) const;
+    void compress(bitstream &bstream, bool write_size = true) const;
 
 private:
-    BitStream m_content;
+    bitstream m_content;
 };
 
 typedef std::list<Diff> Diffs;

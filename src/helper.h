@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include "json.h"
 
 using std::to_string;
@@ -10,7 +11,7 @@ namespace json
 class DocumentTraversal
 {
 public:
-    static void skip_next(ObjectType type, BitStream &view)
+    static void skip_next(ObjectType type, bitstream &view)
     {
         switch(type)
         {
@@ -65,7 +66,7 @@ public:
 class DocumentDiffs : public DocumentTraversal
 {
 public:
-    DocumentDiffs(const BitStream &data1, const BitStream &data2)
+    DocumentDiffs(const bitstream &data1, const bitstream &data2)
     {
         view1.assign(const_cast<uint8_t*>(data1.data()), data1.size(), true);
         view2.assign(const_cast<uint8_t*>(data2.data()), data2.size(), true);
@@ -159,7 +160,7 @@ private:
     }
 
 private:
-    BitStream view1, view2;
+    bitstream view1, view2;
     std::vector<std::string> path1;
     std::vector<std::string> path2;
 
@@ -314,7 +315,7 @@ private:
 class DocumentMerger : public DocumentTraversal
 {
 public:
-    DocumentMerger(BitStream &doc, std::string full_path, const BitStream &other)
+    DocumentMerger(bitstream &doc, std::string full_path, const bitstream &other)
         : m_doc(doc), m_other(other), m_success(false)
     {
         size_t it;
@@ -470,7 +471,7 @@ public:
     }
 
 private:
-    void insert_into_map(const std::string& key, const BitStream &data, uint32_t start)
+    void insert_into_map(const std::string& key, const bitstream &data, uint32_t start)
     {
         m_doc.make_space(data.size() + sizeof(uint32_t) + key.size());
         m_doc << key;
@@ -523,7 +524,7 @@ private:
         {
             assert(path.size() >= 2);
 
-            BitStream data;
+            bitstream data;
             json::Writer writer(data);
 
             auto it = path.begin();
@@ -591,15 +592,15 @@ private:
 
     std::list<std::string> path;
 
-    BitStream &m_doc;
-    const BitStream &m_other;
+    bitstream &m_doc;
+    const bitstream &m_other;
     bool m_success;
 };
 
 class DocumentAdd : public DocumentTraversal
 {
 public:
-    DocumentAdd(BitStream &data, const std::string &path, const json::Document &value)
+    DocumentAdd(bitstream &data, const std::string &path, const json::Document &value)
         : m_view(data), m_target_path(path), m_value(value)
     {
         m_view.move_to(0);
@@ -695,7 +696,7 @@ private:
     }
 
 private:
-    BitStream& m_view;
+    bitstream& m_view;
     const std::string m_target_path;
     std::vector<std::string> m_current_path;
     const json::Document &m_value;

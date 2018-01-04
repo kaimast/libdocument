@@ -7,7 +7,7 @@ using std::to_string;
 namespace json
 {
 
-IterationEngine::IterationEngine(const BitStream &data, json::Iterator &iterator_)
+IterationEngine::IterationEngine(const bitstream &data, json::Iterator &iterator_)
     : iterator(iterator_)
 {
     if(data.empty())

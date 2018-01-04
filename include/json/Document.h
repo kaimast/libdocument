@@ -1,8 +1,8 @@
 #pragma once
 
 #include "defines.h"
+#include "bitstream.h"
 
-#include "json/BitStream.h"
 #include "json/Diff.h"
 #include "json/Iterator.h"
 
@@ -30,7 +30,7 @@ public:
      */
     Document() = default;
 
-    explicit Document(BitStream &data);
+    explicit Document(bitstream &data);
 
     /**
      * Creates an object from a JSON string
@@ -42,7 +42,7 @@ public:
 
     ~Document() = default;
 
-    void assign(BitStream &&data)
+    void assign(bitstream &&data)
     {
         m_content = std::move(data);
     }
@@ -71,7 +71,7 @@ public:
     integer_t as_integer() const;
     float_t as_float() const;
     bool as_boolean() const;
-    BitStream as_bitstream() const;
+    bitstream as_bitstream() const;
 
     bool add(const std::string &path, const json::Document &value);
     
@@ -93,12 +93,12 @@ public:
 
     void iterate(Iterator &iterator) const;
 
-    const BitStream& data() const
+    const bitstream& data() const
     {
         return m_content;
     }
 
-    BitStream& data()
+    bitstream& data()
     {
         return m_content;
     }
@@ -133,7 +133,7 @@ public:
 
     bool insert(const std::string &path, const json::Document &doc);
 
-    void compress(BitStream &bstream) const;
+    void compress(bitstream &bstream) const;
 
     std::string str() const;
 
@@ -151,7 +151,7 @@ public:
     Diffs diff(const Document &other) const;
 
 protected:
-    BitStream m_content;
+    bitstream m_content;
 };
 
 /**
@@ -175,7 +175,7 @@ public:
         m_content.move_to(0);
     }
 
-    Binary(BitStream &bstream)
+    Binary(bitstream &bstream)
         : Document()
     {
         m_content << ObjectType::Binary;
@@ -200,13 +200,13 @@ inline bool operator==(const Document &first, const Document &second)
 }
 }
 
-inline BitStream& operator<<(BitStream &bs, const json::Document& doc)
+inline bitstream& operator<<(bitstream &bs, const json::Document& doc)
 {
     doc.compress(bs);
     return bs;
 }
 
-inline BitStream& operator>>(BitStream &bs, json::Document& doc)
+inline bitstream& operator>>(bitstream &bs, json::Document& doc)
 {
     doc = json::Document(bs);
     return bs;

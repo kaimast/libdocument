@@ -1,11 +1,11 @@
-project('libdocument', 'cpp', default_options: ['cpp_std=c++14'])
+project('libdocument', 'cpp')
 
 inc_dirs = include_directories('/usr/local/include', 'include/')
 
 gtest = dependency('gtest')
 gmock = dependency('gmock')
 
-compile_args = ['-Wextra', '-Werror', '-Wno-implicit-exception-spec-mismatch'] # Remove me once clang issue is fixed in SGX SDK
+compile_args = ['-std=c++17', '-Wextra', '-Werror', '-Wno-implicit-exception-spec-mismatch'] # Remove me once clang issue is fixed in SGX SDK
 
 if get_option('use_geo') == true
     compile_args = compile_args + ['-DUSE_GEO']
@@ -39,7 +39,6 @@ doc_sgx = static_library('document_sgx', cpp_files,
     '-Wl,--start-group', '-lsgx_tstdc','-lsgx_tcxx', '-Wl,--end-group',
     ],
     include_directories: [sgx_incdir, sgx_tlibc_incdir, sgx_stdcxx_incdir, inc_dirs], install: true)
-
 
 subdir('test')
 

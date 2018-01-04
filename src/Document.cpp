@@ -14,7 +14,7 @@ using std::to_string;
 namespace json
 {
 
-inline void skip_child(BitStream &view)
+inline void skip_child(bitstream &view)
 {
     ObjectType ctype;
     view >> ctype;
@@ -66,7 +66,7 @@ Document::Document(Document &&other) noexcept
 {
 }
 
-Document::Document(BitStream &data)
+Document::Document(bitstream &data)
 {
     uint32_t size = 0;
     data >> size;
@@ -87,7 +87,7 @@ bool Document::valid() const
 
     // Only check the top level element
     // Tradeoff between performance and safety
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
     skip_child(view);
 
@@ -126,7 +126,7 @@ Document Document::duplicate(bool force_copy) const
     return out;
 }
 
-void Document::compress(BitStream &bstream) const
+void Document::compress(bitstream &bstream) const
 {
     uint32_t size = m_content.size();
     bstream << size;
@@ -170,7 +170,7 @@ Document::Document(const Document& parent, const std::vector<std::string> &paths
 
 Document::Document(const Document &parent, const uint32_t pos)
 {
-    BitStream view;
+    bitstream view;
     view.assign(parent.m_content.data(), parent.m_content.size(), true);
 
     ObjectType type;
@@ -299,7 +299,7 @@ bool Document::add(const std::string &path, const json::Document &value)
 
 json::Document Document::get_child(size_t pos) const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     std::vector<std::string> result;
@@ -343,7 +343,7 @@ json::Document Document::get_child(size_t pos) const
 
 std::string Document::get_key(size_t pos) const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -384,7 +384,7 @@ std::string Document::get_key(size_t pos) const
 
 uint32_t Document::get_size() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -406,7 +406,7 @@ uint32_t Document::get_size() const
 
 ObjectType Document::get_type() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     if(view.at_end())
@@ -420,9 +420,9 @@ ObjectType Document::get_type() const
     return type;
 }
 
-BitStream Document::as_bitstream() const
+bitstream Document::as_bitstream() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -436,14 +436,14 @@ BitStream Document::as_bitstream() const
     uint32_t size;
     view >> size;
 
-    BitStream result;
+    bitstream result;
     result.assign(view.current(), size, true);
     return result;
 }
 /*
 const uint8_t* Document::as_binary() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -457,7 +457,7 @@ const uint8_t* Document::as_binary() const
 
 json::integer_t Document::as_integer() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -475,7 +475,7 @@ json::integer_t Document::as_integer() const
 
 json::float_t Document::as_float() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -493,7 +493,7 @@ json::float_t Document::as_float() const
 
 bool Document::as_boolean() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -516,7 +516,7 @@ bool Document::as_boolean() const
 #ifdef USE_GEO
 geo::vector2d Document::as_vector2() const
 {
-    BitStream view;
+    bitstream view;
 
     view.assign(m_content.data(), m_content.size(), true);
 
@@ -538,7 +538,7 @@ geo::vector2d Document::as_vector2() const
 
 std::string Document::as_string() const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
@@ -564,7 +564,7 @@ Diffs Document::diff(const Document &other) const
 
 json::Document Diff::as_document() const
 {
-    BitStream bstream;
+    bitstream bstream;
     compress(bstream, false);
 
     uint8_t *data = nullptr;
@@ -575,9 +575,9 @@ json::Document Diff::as_document() const
     return json::Document(data, len, json::DocumentMode::ReadWrite);
 }
 
-void Diff::compress(BitStream &bstream, bool write_size) const
+void Diff::compress(bitstream &bstream, bool write_size) const
 {
-    BitStream view;
+    bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     uint32_t size = 0;

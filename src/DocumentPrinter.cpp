@@ -13,7 +13,10 @@ void Printer::handle_key(const std::string &key)
 
     if(key.empty())
     {
-        assert(mode.empty());
+        if(!mode.empty())
+        {
+            throw std::runtime_error("invalid state: key stack is empty but mode isn't");
+        }
         return;
     }
     else if(m == FIRST_IN_MAP)

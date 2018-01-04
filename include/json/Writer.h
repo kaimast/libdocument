@@ -5,7 +5,7 @@
 #endif
 
 #include "defines.h"
-#include "BitStream.h"
+#include "bitstream.h"
 #include "Document.h"
 
 namespace json
@@ -14,7 +14,7 @@ namespace json
 class Writer
 {
 public:
-    Writer(BitStream &result);
+    Writer(bitstream &result);
 
     Writer();
     ~Writer();
@@ -39,7 +39,7 @@ public:
     }
 
     void write_null(const std::string &key);
-    void write_binary(const std::string &key, const BitStream &value);
+    void write_binary(const std::string &key, const bitstream &value);
     void write_boolean(const std::string &key, const bool value);
     void write_datetime(const std::string &key, const tm &value);
     void write_integer(const std::string &key, const integer_t &value);
@@ -55,8 +55,8 @@ private:
     void handle_key(const std::string &key);
     void check_end();
 
-    BitStream *m_result_ptr;
-    BitStream &m_result;
+    bitstream *m_result_ptr;
+    bitstream &m_result;
 
     enum mode_t {IN_ARRAY, IN_MAP, DONE};
 

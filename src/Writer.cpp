@@ -3,13 +3,13 @@
 namespace json
 {
 
-Writer::Writer(BitStream &result)
+Writer::Writer(bitstream &result)
     : m_result_ptr(nullptr), m_result(result)
 {
 }
 
 Writer::Writer()
-    : m_result_ptr(new BitStream), m_result(*m_result_ptr)
+    : m_result_ptr(new bitstream), m_result(*m_result_ptr)
 {}
 
 Writer::~Writer()
@@ -126,7 +126,7 @@ void Writer::write_raw_data(const std::string &key, const uint8_t *data, uint32_
     check_end();
 }
 
-void Writer::write_binary(const std::string &key, const BitStream &value)
+void Writer::write_binary(const std::string &key, const bitstream &value)
 {
     handle_key(key);
     m_result << ObjectType::Binary << static_cast<uint32_t>(value.size());

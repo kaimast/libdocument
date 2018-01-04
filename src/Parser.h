@@ -11,7 +11,7 @@ namespace json
 class Parser
 {
 public:
-    Parser(const std::string &str_, BitStream &result_);
+    Parser(const std::string &str_, bitstream &result_);
 
     void do_parse();
 
