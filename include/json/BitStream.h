@@ -105,6 +105,8 @@ public:
 
     void operator=(BitStream &&other)
     {
+        clear();
+
         m_data = other.m_data;
         m_read_only = other.m_read_only;
         m_pos = other.m_pos;
@@ -126,7 +128,9 @@ public:
         {
             m_size = m_alloc_size = new_size;
             if(new_size > 0)
+            {
                 m_data = reinterpret_cast<uint8_t*>(malloc(new_size));
+            }
             return;
         }
 
