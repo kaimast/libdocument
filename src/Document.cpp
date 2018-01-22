@@ -21,6 +21,11 @@ inline void skip_child(bitstream &view)
 
     switch(ctype)
     {
+#ifdef USE_GEO
+    case ObjectType::Vector2:
+        view.move_by(sizeof(geo::vector2d));
+        break;
+#endif
     case ObjectType::Binary:
     case ObjectType::Map:
     case ObjectType::Array:

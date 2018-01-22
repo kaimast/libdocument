@@ -13,11 +13,26 @@ namespace json
 
 class Writer
 {
+private:
+    static constexpr const char *EMPTY_KEY = "";
+
 public:
     Writer(bitstream &result);
 
     Writer();
     ~Writer();
+
+    void start_map() { start_map(EMPTY_KEY); }
+    void start_array() { start_array(EMPTY_KEY); }
+
+    void write_null() { write_null(EMPTY_KEY); }
+    void write_binary(const bitstream &value) { write_binary(EMPTY_KEY, value); }
+    void write_boolean(const bool value) { write_boolean(EMPTY_KEY, value); }
+    void write_datetime(const tm &value) { write_datetime(EMPTY_KEY, value); }
+    void write_integer(const integer_t &value) { write_integer(EMPTY_KEY, value); }
+    void write_string(const std::string &value) { write_string(EMPTY_KEY, value); }
+    void write_float(const float_t &value) { write_float(EMPTY_KEY, value); }
+
 
     void start_map(const std::string &key);
     void end_map();
