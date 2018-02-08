@@ -1,6 +1,6 @@
 project('libdocument', 'cpp')
 
-inc_dirs = include_directories('/usr/local/include', 'include/')
+inc_dirs = include_directories('/usr/local/include', 'include/', get_option('prefix')+'/include')
 
 gtest = dependency('gtest')
 gmock = dependency('gmock')
