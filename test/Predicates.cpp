@@ -84,6 +84,28 @@ TEST(PredicatesTest, array_predicate)
     EXPECT_TRUE(doc.matches_predicates(predicate3));
 }
 
+TEST(PredicatesTest, str_equality)
+{
+    Document doc1("{\"id\": \"xyz\"}");
+    Document doc2("{\"id\": \"abc\"}");
+    
+    Document predicate("{\"id\": \"xyz\"}");
+
+    EXPECT_TRUE(doc1.matches_predicates(predicate));
+    EXPECT_FALSE(doc2.matches_predicates(predicate));
+}
+
+TEST(PredicatesTest, int_equality)
+{
+    Document doc1("{\"x\":3, \"id\":42}");
+    Document doc2("{\"id\":12, \"y\":5}");
+    
+    Document predicate("{\"id\": 42}");
+
+    EXPECT_TRUE(doc1.matches_predicates(predicate));
+    EXPECT_FALSE(doc2.matches_predicates(predicate));
+}
+
 TEST(PredicatesTest, set_predicate)
 {
     Document doc1("{\"id\":42}");

@@ -49,6 +49,9 @@ inline void skip_child(bitstream &view)
     case ObjectType::Float:
         view.move_by(sizeof(json::float_t));
         break;
+    case ObjectType::Datetime:
+        view.move_by(sizeof(tm));
+        break;
     default:
         throw std::runtime_error("Unknown document type!");
     }
@@ -153,6 +156,11 @@ void Document::iterate(json::Iterator &iterator) const
 
 std::string Document::str() const
 {
+    if(!valid())
+    {
+        return "";
+    }
+
     json::Printer printer;
     iterate(printer);
     return printer.get_result();
@@ -234,7 +242,7 @@ Document::Document(const Document& parent, const std::string &path, bool force)
         Search search(parent, path);
         bool success = search.do_search();
 
-        if(success && force)
+        if(!success && force)
         {
             throw std::runtime_error("Path was not found");
         }
