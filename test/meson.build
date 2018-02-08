@@ -1,1 +1,1 @@
-test_files = files('main.cpp', 'basic.cpp', 'Writer.cpp')
+test_files = files('main.cpp', 'basic.cpp', 'Writer.cpp', 'Predicates.cpp')

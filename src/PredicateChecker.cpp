@@ -1,7 +1,8 @@
-#include "json.h"
-#include "Iterator.h"
+#include "PredicateChecker.h"
 
 #include "defines.h"
+#include "json.h"
+
 using std::to_string;
 
 namespace json
@@ -84,15 +85,37 @@ void PredicateChecker::push_key(const std::string &key)
             m_pred_values.push_back(val);
         }
     }
-    else if(key == keyword(GREATER_THAN_EQUAL) || key == keyword(LESS_THAN))
+    else if(key == keyword(LESS_THAN) || key == keyword(LESS_THAN_EQUAL)
+            || key == keyword(GREATER_THAN) || key == keyword(GREATER_THAN_EQUAL)
+            || key == keyword(EQUAL) || key == keyword(NOT_EQUAL))
     {
         if(key == keyword(LESS_THAN))
         {
             m_mode.push_back(predicate_mode::LESS_THAN);
         }
-        else
+        else if(key == keyword(LESS_THAN_EQUAL))
+        {
+            m_mode.push_back(predicate_mode::LESS_THAN_EQUAL);
+        }
+        else if(key == keyword(GREATER_THAN))
+        {
+            m_mode.push_back(predicate_mode::GREATER_THAN);
+        }
+        else if(key == keyword(GREATER_THAN_EQUAL))
         {
             m_mode.push_back(predicate_mode::GREATER_THAN_EQUAL);
+        }
+        else if(key == keyword(EQUAL))
+        {
+            m_mode.push_back(predicate_mode::EQUAL);
+        }
+        else if(key == keyword(NOT_EQUAL))
+        {
+            m_mode.push_back(predicate_mode::NOT_EQUAL);
+        }
+        else
+        {
+            throw std::runtime_error("unexpected");
         }
 
         m_pred_values.clear();
@@ -201,14 +224,37 @@ void PredicateChecker::handle_string(const std::string &key, const std::string &
     }
     else
     {
-        for(auto &val: m_pred_values)
+        if(mode() == predicate_mode::EQUAL)
         {
-            if(val.type == ObjectType::String && val.str == value)
+            for(auto &val: m_pred_values)
             {
-                m_pred_matches = true;
+                if(val.type == ObjectType::String && val.str == value)
+                {
+                    m_pred_matches = true;
+                }
             }
         }
-    }
+        else if(mode() == predicate_mode::IN)
+        {
+            for(auto &val: m_pred_values)
+            {
+                if(val.type == ObjectType::String && val.str == value)
+                {
+                    m_pred_matches = true;
+                }
+            }
+        }
+        else if(mode() == predicate_mode::NOT_EQUAL)
+        {
+            for(auto &val: m_pred_values)
+            {
+                if(val.type == ObjectType::String && val.str != value)
+                {
+                    m_pred_matches = true;
+                }
+            }
+        }
+     }
 
     pop_path();
 }
@@ -266,6 +312,34 @@ void PredicateChecker::handle_integer(const std::string &key, const integer_t va
             }
         }
     }
+    else if(mode() == predicate_mode::LESS_THAN_EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating <= value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer <= value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+    else if(mode() == predicate_mode::GREATER_THAN)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating > value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer > value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
     else if(mode() == predicate_mode::GREATER_THAN_EQUAL)
     {
         for(auto &val: m_pred_values)
@@ -280,7 +354,35 @@ void PredicateChecker::handle_integer(const std::string &key, const integer_t va
             }
         }
     }
-
+    else if(mode() == predicate_mode::EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating == value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer == value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+    else if(mode() == predicate_mode::NOT_EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating != value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer != value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+ 
     pop_path();
 }
 
@@ -333,6 +435,34 @@ void PredicateChecker::handle_float(const std::string &key, const json::float_t 
             }
         }
     }
+    else if(mode() == predicate_mode::LESS_THAN_EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating <= value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer <= value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+    else if(mode() == predicate_mode::GREATER_THAN)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating > value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer > value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
     else if(mode() == predicate_mode::GREATER_THAN_EQUAL)
     {
         for(auto &val: m_pred_values)
@@ -342,6 +472,34 @@ void PredicateChecker::handle_float(const std::string &key, const json::float_t 
                 m_pred_matches = true;
             }
             else if(val.type == ObjectType::Integer && val.integer >= value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+    else if(mode() == predicate_mode::EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating == value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer == value)
+            {
+                m_pred_matches = true;
+            }
+        }
+    }
+    else if(mode() == predicate_mode::NOT_EQUAL)
+    {
+        for(auto &val: m_pred_values)
+        {
+            if(val.type == ObjectType::Float && val.floating != value)
+            {
+                m_pred_matches = true;
+            }
+            else if(val.type == ObjectType::Integer && val.integer != value)
             {
                 m_pred_matches = true;
             }

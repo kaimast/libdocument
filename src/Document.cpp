@@ -2,6 +2,7 @@
 #include "helper.h"
 #include "Search.h"
 #include "Iterator.h"
+#include "PredicateChecker.h"
 #include "Parser.h"
 
 #include <cctype>

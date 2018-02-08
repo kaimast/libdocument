@@ -29,7 +29,7 @@ sgx_tstdc_dep = cpp.find_library('sgx_tstdc', dirs: sgx_library_path)
 sgx_tstdcxx_dep = cpp.find_library('sgx_tcxx', dirs: sgx_library_path)
 sgx_trts_dep = cpp.find_library('sgx_trts', dirs: sgx_library_path)
 
-sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-std=c++11', '-nostdinc++']
+sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-std=c++14', '-nostdinc++']
  
 doc_sgx = static_library('document_sgx', cpp_files,
     c_args: sgx_compile_args,

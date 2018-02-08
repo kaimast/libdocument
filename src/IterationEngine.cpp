@@ -12,7 +12,7 @@ IterationEngine::IterationEngine(const bitstream &data, json::Iterator &iterator
 {
     if(data.empty())
     {
-        throw std::runtime_error("Not a valid object!");
+        throw std::runtime_error("Cannot iteratoe: not a valid object!");
     }
 
     view.assign(data.data(), data.size(), true);

@@ -10,31 +10,59 @@ namespace json
 
 enum KeywordType
 {
-    IN, WILDCARD, FALSE, TRUE, NIL, LESS_THAN, GREATER_THAN_EQUAL
+    IN, WILDCARD, FALSE, TRUE, NIL, LESS_THAN, LESS_THAN_EQUAL, GREATER_THAN, GREATER_THAN_EQUAL, EQUAL, NOT_EQUAL
 };
 
-#ifdef IS_ENCLAVE
-inline const char* keyword(KeywordType type)
-#else
 constexpr const char* keyword(KeywordType type)
-#endif
 {
     if(type == TRUE)
+    {
         return "true";
+    }
     else if(type == FALSE)
+    {
         return "false";
+    }
     else if(type == WILDCARD)
+    {
         return "*";
+    }
     else if(type == NIL)
+    {
         return "null";
+    }
     else if(type == IN)
+    {
         return "$in";
+    }
     else if(type == LESS_THAN)
+    {
         return "$lt";
+    }
+    else if(type == LESS_THAN_EQUAL)
+    {
+        return "$lte";
+    }
+    else if(type == GREATER_THAN)
+    {
+        return "$gt";
+    }
     else if(type == GREATER_THAN_EQUAL)
+    {
         return "$gte";
+    }
+    else if(type == EQUAL)
+    {
+        return "$eq";
+    }
+    else if(type == NOT_EQUAL)
+    {
+        return "$neq";
+    }
     else
+    {
         return "";
+    }
 }
 
 //Expand paths containing wildcards accordingly

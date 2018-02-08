@@ -28,6 +28,22 @@ TEST(Basic, invalid)
     EXPECT_FALSE(invalid.valid());
 }
 
+TEST(Basic, spaces)
+{
+    Document doc1("{\"a\" :1}");
+    Document doc2("{\"a\": 1}");
+
+    EXPECT_TRUE(doc1 == doc2);
+}
+
+TEST(Basic, root_view)
+{
+    Document doc("{\"a\" :1}");
+    Document view(doc, "");
+
+    EXPECT_TRUE(doc == view);
+}
+
 TEST(Basic, compress_two)
 {
     Document input1("{\"a\":1}");
@@ -178,6 +194,7 @@ TEST(Basic, array_nested_pppend)
     EXPECT_TRUE(result);
     EXPECT_EQ(doc.str(), "{\"b\":\"xyz\",\"a\":{\"foo\":[4,3,2,23]},\"bar\":1337}");
 }
+
 TEST(Basic, array_append)
 {
     Document doc("{\"b\":\"xyz\",\"a\":[4,3,2]}");
@@ -192,47 +209,6 @@ TEST(Basic, update)
     Document doc("{\"a\":42}");
     doc.insert("a", json::Document("23"));
     EXPECT_EQ(doc.str(), "{\"a\":23}");
-}
-
-TEST(Basic, array_predicate)
-{
-    Document doc("{\"a\":[5,4,{\"c\":3}]}");
-
-    Document predicate1("{\"a.1\":5}");
-    Document predicate2("{\"a.0\":5}");
-    Document predicate3("{\"a.2.c\":3}");
-
-    EXPECT_FALSE(doc.matches_predicates(predicate1));
-    EXPECT_TRUE(doc.matches_predicates(predicate2));
-    EXPECT_TRUE(doc.matches_predicates(predicate3));
-}
-
-TEST(Basic, set_predicate)
-{
-    Document doc1("{\"id\":42}");
-    Document doc2("{\"id\":\"whatever\"}");
-    Document doc3("{\"id\":1337.0}");
-
-    Document predicate("{\"id\":{\"$in\": [\"whoever\", 1337.0, \"whatever\", \"however\"]}}");
-
-    EXPECT_FALSE(doc1.matches_predicates(predicate));
-    EXPECT_TRUE(doc2.matches_predicates(predicate));
-    EXPECT_TRUE(doc3.matches_predicates(predicate));
-}
-
-TEST(Basic, wildcard_predicate)
-{
-    Document doc1("{\"a\":[1,3,4]}");
-    Document doc2("{\"a\":[2,5,{\"b\":42}]}");
-
-    Document predicate1("{\"a\":{\"*\":3}}");
-    Document predicate2("{\"a.*\":3}");
-    Document predicate3("{\"a.*.b\":42}");
-
-    EXPECT_FALSE(doc2.matches_predicates(predicate1));
-    EXPECT_TRUE(doc1.matches_predicates(predicate1));
-    EXPECT_TRUE(doc1.matches_predicates(predicate2));
-    EXPECT_TRUE(doc2.matches_predicates(predicate3));
 }
 
 TEST(Basic, filter)

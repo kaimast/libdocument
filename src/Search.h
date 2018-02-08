@@ -57,7 +57,14 @@ private:
 
                 if(len == 0)
                 {
-                    on_path = true;
+                    if(target_path.size() == len)
+                    {
+                        on_path = on_target = true;
+                    }
+                    else
+                    {
+                        on_path = true;
+                    }
                 }
                 else if(target_path.compare(0, len, current) == 0)
                 {
@@ -75,7 +82,9 @@ private:
 
         std::string key = "";
         if(m_current_path.size() > 0)
+        {
             key = m_current_path.back();
+        }
 
         uint32_t start = m_view.pos();
 
@@ -163,7 +172,9 @@ private:
         std::string key = m_current_path.size() > 0 ? m_current_path.back() : "";
 
         if(m_write_path)
+        {
             writer.start_map(key);
+        }
 
         for(uint32_t i = 0; i < size; ++i)
         {
@@ -176,7 +187,9 @@ private:
         }
 
         if(m_write_path)
+        {
             writer.end_map();
+        }
     }
 
     void parse_array(json::Writer &writer)
@@ -190,7 +203,9 @@ private:
         std::string key = m_current_path.size() > 0 ? m_current_path.back() : "";
 
         if(m_write_path)
+        {
             writer.start_array(key);
+        }
 
         for(uint32_t i = 0; i < size; ++i)
         {
@@ -200,7 +215,9 @@ private:
         }
 
         if(m_write_path)
+        {
             writer.end_array();
+        }
     }
 };
 

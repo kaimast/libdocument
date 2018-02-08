@@ -6,6 +6,26 @@ using std::to_string;
 namespace json
 {
 
+inline std::runtime_error make_parse_error(const std::string &msg, const std::string &str, const std::string &expected, const std::string::const_iterator &it)
+{
+    std::string out;
+    out += msg + ": <" + str + ">. ";
+    out += "Expected \"" + expected + "\", got ";
+
+    if(it == str.end())
+    {
+        out += "<EOS>";
+    }
+    else
+    {
+        out += '\"';
+        out += *it;
+        out += '\"';
+    }
+
+    return std::runtime_error(out);
+}
+
 Parser::Parser(const std::string& str_, bitstream &result_)
     : str(str_), writer(result_)
 {
@@ -181,7 +201,7 @@ void Parser::parse_map(const std::string &key)
 {
     if(it == str.end() || *it != '{')
     {
-        throw std::runtime_error("Not a valid map!");
+        throw make_parse_error("Not a valid map", str, "{", it);
     }
 
     ++it;
@@ -202,7 +222,7 @@ void Parser::parse_map(const std::string &key)
         {
             if(it == str.end() || *it != ',')
             {
-                throw std::runtime_error("Not a valid map");
+                throw make_parse_error("Not a valid map", str, ",", it);
             }
 
             ++it;
@@ -211,9 +231,11 @@ void Parser::parse_map(const std::string &key)
 
         std::string child_key = read_string();
 
+        skip_whitespace();
+
         if(it == str.end() || *it != ':')
         {
-            throw std::runtime_error("Not a valid map");
+            throw make_parse_error("Not a valid map", str, ":", it);
         }
 
         ++it;
