@@ -36,14 +36,6 @@ TEST(Basic, spaces)
     EXPECT_TRUE(doc1 == doc2);
 }
 
-TEST(Basic, root_view)
-{
-    Document doc("{\"a\" :1}");
-    Document view(doc, "");
-
-    EXPECT_TRUE(doc == view);
-}
-
 TEST(Basic, compress_two)
 {
     Document input1("{\"a\":1}");
@@ -209,33 +201,6 @@ TEST(Basic, update)
     Document doc("{\"a\":42}");
     doc.insert("a", json::Document("23"));
     EXPECT_EQ(doc.str(), "{\"a\":23}");
-}
-
-TEST(Basic, filter)
-{
-    Document doc("{\"a\":41, \"b\":42, \"c\": 42}");
-
-    Document filtered(doc, std::vector<std::string>{"b"});
-
-    EXPECT_EQ(filtered.str(), "{\"b\":42}");
-}
-
-TEST(Basic, wildcard_filter)
-{
-    Document doc("{\"a\":[{\"b\":41,\"c\":42},{\"b\":43,\"c\":42}]}");
-
-    Document filtered(doc, std::vector<std::string>{"a.*.b"});
-
-    EXPECT_EQ(filtered.str(), "{\"a\":[{\"b\":41},{\"b\":43}]}");
-}
-
-TEST(Basic, wildcard_filter_nested)
-{
-    Document doc("{\"a\":[{\"b\":{\"c\":42}}]}");
-
-    Document filtered(doc, std::vector<std::string>{"a.*.b.c"});
-
-    EXPECT_EQ(filtered.str(), "{\"a\":[{\"b\":{\"c\":42}}]}");
 }
 
 TEST(Basic, get_key)

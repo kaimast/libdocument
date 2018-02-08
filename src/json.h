@@ -65,7 +65,9 @@ constexpr const char* keyword(KeywordType type)
     }
 }
 
-//Expand paths containing wildcards accordingly
+/**
+ * Expand paths containing wildcards accordingly
+ */
 inline std::vector<std::string> path_strings(const std::vector<std::string>& path, const json::Document &doc, const std::string &current_path = "", uint32_t it = 0)
 {
     if(it == path.size())

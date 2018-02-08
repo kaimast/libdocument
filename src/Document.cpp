@@ -1,6 +1,8 @@
 #include "json/json.h"
 #include "helper.h"
+#include "DocumentMerger.h"
 #include "Search.h"
+#include "Projection.h"
 #include "Iterator.h"
 #include "PredicateChecker.h"
 #include "Parser.h"
@@ -165,8 +167,8 @@ std::string Document::pretty_str(int indent) const
 
 Document::Document(const Document& parent, const std::vector<std::string> &paths, bool force)
 {
-    DocumentSearch search(parent, paths, true);
-    uint32_t num_found = search.do_search(m_content);
+    Projection proj(parent, paths, true);
+    uint32_t num_found = proj.do_search(m_content);
 
     if(num_found != paths.size() && force)
     {
@@ -214,15 +216,30 @@ Document::Document(const Document &parent, const uint32_t pos)
 
 Document::Document(const Document& parent, const std::string &path, bool force)
 {
-    std::vector<std::string> paths;
-    paths.push_back(path);
-
-    DocumentSearch search(parent, paths, false);
-    uint32_t num_found = search.do_search(m_content);
-
-    if(num_found == 0 && force)
+    /// Wildcard may match multiple paths so we need to do a full projection
+    if(path.find(keyword(WILDCARD)) != std::string::npos)
     {
-        throw std::runtime_error("Path was not found");
+        std::vector<std::string> paths = {path};
+
+        Projection proj(parent, paths, true);
+        uint32_t num_found = proj.do_search(m_content);
+
+        if(num_found != paths.size() && force)
+        {
+            throw std::runtime_error("Not all paths were found");
+        }
+    }
+    else
+    {
+        Search search(parent, path);
+        bool success = search.do_search();
+
+        if(success && force)
+        {
+            throw std::runtime_error("Path was not found");
+        }
+
+        m_content = search.get_result();
     }
 }
 

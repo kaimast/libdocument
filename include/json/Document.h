@@ -18,11 +18,19 @@ class Document
 public:
     Document(Document &&other) noexcept;
 
-    /// Filter parent by a set of paths
+    /**
+     * Generate document by extracting a set of paths from an existing document
+     */
     Document(const Document &parent, const std::vector<std::string> &paths, bool force = false);
 
-    /// Create a view on a subset of the document
+    /**
+     * Get a view of a specific child 
+     */
     Document(const Document &parent, const uint32_t pos);
+
+    /**
+     * Create a view of a subset of the document
+     */
     Document(const Document &parent, const std::string &path, bool force = false);
 
     /**
