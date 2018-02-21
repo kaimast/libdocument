@@ -1,1 +1,2 @@
 option('use_geo', type : 'boolean', value : false, description : '')
+option('sgx_sdk_dir', type: 'string', value : '/opt/intel/sgxsdk', description: 'If you want to build the SGX-version of libdocument, set this to where the SGX SDK is located.')
