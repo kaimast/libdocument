@@ -19,3 +19,12 @@ cd build
 ninja
 sudo ninja install
 ```
+
+## Compiling libdocument for SGX
+Set the sgx_sdk_dir option depending on where you installed the SDK. Usually it is something like this
+
+```
+meson configure -Dsgx_sdk_dir=/opt/intel/sgxsdk
+```
+
+Then just build the library as above. When linking your application, make sure you link against `libdocument_sgx.a` and not the shared library. That's it.
