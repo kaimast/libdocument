@@ -40,7 +40,7 @@ if sgx_tstdc_dep.found() and sgx_tstdcxx_dep.found() and sgx_trts_dep.found()
         ],
         include_directories: [sgx_incdir, sgx_tlibc_incdir, sgx_stdcxx_incdir, inc_dirs], install: true)
 else
-    print('SGX not found. Not building trusted library.')
+    message('SGX not found. Not building trusted library.')
 endif
 
 subdir('test')
