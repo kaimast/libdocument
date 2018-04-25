@@ -34,8 +34,10 @@ private:
     const json::Document &m_document;
 
     bitstream m_view;
-    std::vector<std::vector<std::string>> m_target_paths; //FIXME preserve order
+    
+    std::vector<std::string> m_target_paths; //FIXME preserve order
     std::vector<std::string> m_current_path;
+
     const bool m_write_path;
     uint32_t m_found_count;
 

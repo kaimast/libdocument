@@ -1,5 +1,6 @@
 #include "json.h"
 #include "Iterator.h"
+#include "json/json_error.h"
 
 #include "defines.h"
 using std::to_string;
@@ -12,7 +13,7 @@ IterationEngine::IterationEngine(const bitstream &data, json::Iterator &iterator
 {
     if(data.empty())
     {
-        throw std::runtime_error("Cannot iterate: not a valid object!");
+        throw json_error("Cannot iterate: not a valid JSON object!");
     }
 
     view.assign(data.data(), data.size(), true);
@@ -94,7 +95,7 @@ void IterationEngine::parse_next(const std::string &key)
     }
     default:
     {
-        throw std::runtime_error("Document Iteration failed: unknown object type");
+        throw json_error("Document Iteration failed: unknown object type");
     }
     }
 }

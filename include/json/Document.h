@@ -81,12 +81,20 @@ public:
     bool as_boolean() const;
     bitstream as_bitstream() const;
 
+    /**
+     * Add to or create the specified field
+     *
+     * Add semantics are only supported for numeric types
+     */
     bool add(const std::string &path, const json::Document &value);
     
     /**
      * Get the key of the n-th child
      *
      * \note This is only supported for maps
+     *
+     * \throws invalid_argument if the position is out of bounds
+     * \throws json_error if document is not a map
      */
     std::string get_key(size_t pos) const;
     
@@ -94,6 +102,9 @@ public:
      * Returns a read-only view of the child as position pos
      *
      * \note This is only supported for arrays and maps
+     *
+     * \throws invalid_argument if the position is out of bounds
+     * \throws json_error if document is not a map or array
      */
     json::Document get_child(size_t pos) const;
 
@@ -124,6 +135,9 @@ public:
         m_content.clear();
     }
 
+    /**
+     * Returns a 64-bit hash of the content of this document
+     */
     int64_t hash() const;
 
     void detach_data(uint8_t* &data, uint32_t &len)
@@ -143,6 +157,9 @@ public:
 
     void compress(bitstream &bstream) const;
 
+    /**
+     * Returns a compact human-readable JSON string that holds the contents of this document
+     */
     std::string str() const;
 
     /**
@@ -150,8 +167,10 @@ public:
      */
     std::string pretty_str(int indent) const;
 
-    /// Size in bytes of this document
-    uint32_t byte_size() const
+    /**
+     *  Size in bytes of this document
+     */
+    size_t byte_size() const
     {
         return m_content.size();
     }
@@ -202,7 +221,7 @@ public:
     Integer(integer_t i);
 };
 
-inline bool operator==(const Document &first, const Document &second)
+inline bool operator==(const json::Document &first, const json::Document &second)
 {
     return first.data() == second.data();
 }

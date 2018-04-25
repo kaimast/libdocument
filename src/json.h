@@ -96,7 +96,9 @@ inline std::vector<std::string> path_strings(const std::vector<std::string>& pat
             auto ps = path_strings(path, doc, spath, it);
 
             for(auto &p : ps)
+            {
                 result.push_back(p);
+            }
         }
 
         return result;

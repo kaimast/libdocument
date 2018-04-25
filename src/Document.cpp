@@ -53,7 +53,7 @@ inline void skip_child(bitstream &view)
         view.move_by(sizeof(tm));
         break;
     default:
-        throw std::runtime_error("Unknown document type!");
+        throw json_error("Unknown document type!");
     }
 }
 
@@ -180,7 +180,7 @@ Document::Document(const Document& parent, const std::vector<std::string> &paths
 
     if(num_found != paths.size() && force)
     {
-        throw std::runtime_error("Not all paths were found");
+        throw json_error("Not all paths were found");
     }
 }
 
@@ -194,7 +194,7 @@ Document::Document(const Document &parent, const uint32_t pos)
 
     if(type != ObjectType::Array)
     {
-        throw std::runtime_error("Not an array");
+        throw json_error("Not an array");
     }
 
     uint32_t byte_size, size;
@@ -202,7 +202,7 @@ Document::Document(const Document &parent, const uint32_t pos)
 
     if(pos >= size)
     {
-        throw std::runtime_error("out of array bounds!");
+        throw json_error("out of array bounds!");
     }
 
     for(uint32_t i = 0; i < pos; ++i)
@@ -234,7 +234,7 @@ Document::Document(const Document& parent, const std::string &path, bool force)
 
         if(num_found != paths.size() && force)
         {
-            throw std::runtime_error("Not all paths were found");
+            throw json_error("Not all paths were found");
         }
     }
     else
@@ -244,7 +244,7 @@ Document::Document(const Document& parent, const std::string &path, bool force)
 
         if(!success && force)
         {
-            throw std::runtime_error("Path was not found");
+            throw json_error("Path was not found");
         }
 
         m_content = search.get_result();
@@ -270,7 +270,7 @@ Document::Document(uint8_t *data, uint32_t length, DocumentMode mode)
     }
     else
     {
-        throw std::runtime_error("Unknown Doucment mode");
+        throw std::invalid_argument("Unknown Doucment mode");
     }
 
     m_content.move_to(0);
@@ -280,7 +280,7 @@ Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode)
 {
     if(mode == DocumentMode::ReadWrite)
     {
-        throw std::runtime_error("Cannot modify read-only data");
+        throw std::invalid_argument("Cannot modify read-only data");
     }
     else if(mode == DocumentMode::ReadOnly)
     {
@@ -321,7 +321,7 @@ bool Document::add(const std::string &path, const json::Document &value)
         m_content.move_to(0);
         return true;
     }
-    catch(std::runtime_error& e)
+    catch(json_error& e)
     {
         m_content.move_to(0);
         return false;
@@ -340,7 +340,7 @@ json::Document Document::get_child(size_t pos) const
 
     if(type != ObjectType::Map && type != ObjectType::Array)
     {
-        throw std::runtime_error("Document is not a map or array");
+        throw json_error("Document is not a map or array");
     }
 
     uint32_t byte_size, size;
@@ -348,7 +348,7 @@ json::Document Document::get_child(size_t pos) const
 
     if(pos >= size)
     {
-        throw std::runtime_error("Position is out of bounds!");
+        throw std::invalid_argument("Position is out of bounds!");
     }
 
     for(uint32_t i = 0; i < size; ++i)
@@ -382,7 +382,7 @@ std::string Document::get_key(size_t pos) const
 
     if(type != ObjectType::Map)
     {
-        throw std::runtime_error("Document is not a map");
+        throw json_error("Document is not a map");
     }
 
     uint32_t byte_size, size;
@@ -390,7 +390,7 @@ std::string Document::get_key(size_t pos) const
 
     if(pos >= size)
     {
-        throw std::runtime_error("Position is out of bounds!");
+        throw std::invalid_argument("Position is out of bounds!");
     }
 
     for(uint32_t i = 0; i < size; ++i)

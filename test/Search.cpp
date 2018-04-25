@@ -29,7 +29,7 @@ TEST(Search, non_view_except)
 {
     Document doc("{\"a\" :1}");
 
-    EXPECT_THROW(Document(doc, "b", true), std::runtime_error);
+    EXPECT_THROW(Document(doc, "b", true), json_error);
 }
 
 TEST(Search, filter)

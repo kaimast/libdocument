@@ -10,16 +10,29 @@ Projection::Projection(const Document &document, const std::vector<std::string> 
 
     for(auto &path: paths)
     {
-        size_t pos = 0, last_pos = 0;
-        std::vector<std::string> split_path;
-        while((pos = path.find_first_of('.', last_pos)) != std::string::npos)
+        if(path.find(keyword(WILDCARD)) == std::string::npos)
         {
-            split_path.push_back(path.substr(last_pos, pos-last_pos));
-            last_pos = pos+1;
+            m_target_paths.push_back(path);
         }
+        else
+        {
+            size_t pos = 0, last_pos = 0;
+            std::vector<std::string> split_path;
+            while((pos = path.find_first_of('.', last_pos)) != std::string::npos)
+            {
+                split_path.push_back(path.substr(last_pos, pos-last_pos));
+                last_pos = pos+1;
+            }
 
-        split_path.push_back(path.substr(last_pos, pos-last_pos));
-        m_target_paths.push_back(split_path);
+            split_path.push_back(path.substr(last_pos, pos-last_pos));
+
+            auto target_paths = path_strings(split_path, document);
+
+            for(auto &target_path: target_paths)
+            {
+                m_target_paths.push_back(target_path);
+            }
+        }
     }
 }
 
@@ -29,35 +42,30 @@ void Projection::parse_next(json::Writer &writer)
     bool on_path = false;
     bool on_target = false;
 
-    for(auto &path: m_target_paths)
+    for(auto &target_path: m_target_paths)
     {
-        const auto full_paths = path_strings(path, m_document);
+        auto len = std::min(current.size(), target_path.size());
 
-        for(auto &target_path: full_paths)
+        if(len == 0)
         {
-            auto len = std::min(current.size(), target_path.size());
-
-            if(len == 0)
+            if(target_path.size() == len)
             {
-                if(target_path.size() == len)
-                {
-                    on_path = on_target = true;
-                }
-                else
-                {
-                    on_path = true;
-                }
+                on_path = on_target = true;
             }
-            else if(target_path.compare(0, len, current) == 0)
+            else
             {
-                if(target_path.size() == len)
-                {
-                    on_path = on_target = true;
-                }
-                else if(target_path[len] == '.')
-                {
-                    on_path = true;
-                }
+                on_path = true;
+            }
+        }
+        else if(target_path.compare(0, len, current) == 0)
+        {
+            if(target_path.size() == len)
+            {
+                on_path = on_target = true;
+            }
+            else if(target_path[len] == '.')
+            {
+                on_path = true;
             }
         }
     }
