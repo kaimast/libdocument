@@ -276,7 +276,9 @@ public:
         auto t = m_value.get_type();
 
         if(t != ObjectType::Integer && t != ObjectType::Float && t != ObjectType::String)
+        {
             throw std::runtime_error("Add not defined on type type!");
+        }
 
         parse_next();
     }
@@ -298,7 +300,9 @@ private:
 
         std::string key = "";
         if(m_current_path.size() > 0)
+        {
             key = m_current_path.back();
+        }
 
         ObjectType type;
         m_view >> type;
@@ -311,29 +315,57 @@ private:
 
         if(on_target)
         {
-            if(type != m_value.get_type())
-                throw std::runtime_error("Incompatible types!");
-
             if(type == ObjectType::Integer)
             {
+                static_assert(sizeof(json::integer_t) == sizeof(json::float_t));
+
                 json::integer_t value;
                 m_view >> value;
 
-                value += m_value.as_integer();
-                m_view.move_by(-1*static_cast<int32_t>(sizeof(value)));
-                m_view << value;
+                if(m_value.get_type() == ObjectType::Integer)
+                {
+                    value += m_value.as_integer();
+                    m_view.move_by(-1*static_cast<int32_t>(sizeof(value)));
+                    m_view << value;
+                }
+                else if(m_value.get_type() == ObjectType::Float)
+                {
+                    auto res = value +  m_value.as_float();
+                    m_view.move_by(-1 * static_cast<int32_t>(sizeof(ObjectType)+sizeof(value)));
+                    m_view << ObjectType::Float << res;
+                }
+                else
+                {
+                    throw json_error("Cannot add: incompatible types");
+                }
             }
             else if(type == ObjectType::Float)
             {
                 json::float_t value;
                 m_view >> value;
 
-                value += m_value.as_float();
-                m_view.move_by(-1*static_cast<int32_t>(sizeof(value)));
-                m_view << value;
+                if(m_value.get_type() == ObjectType::Integer)
+                {
+                    value += m_value.as_integer();
+                    m_view.move_by(-1*static_cast<int32_t>(sizeof(value)));
+                    m_view << value;
+                }
+                else if(m_value.get_type() == ObjectType::Float)
+                {
+                    value += m_value.as_float();
+                    m_view.move_by(-1*static_cast<int32_t>(sizeof(value)));
+                    m_view << value;
+                }
+                else
+                {
+                    throw json_error("Cannot add: incompatible types");
+                }
+ 
             }
             else
-                throw std::runtime_error("Incompatible types");
+            {
+                throw json_error("Cannot add: Incompatible types");
+            }
         }
         else
         {
