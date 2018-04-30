@@ -31,8 +31,6 @@ json::Document Writer::make_document()
     return json::Document(data, len, DocumentMode::ReadWrite);
 }
 
-
-
 void Writer::start_array(const std::string &key)
 {
     handle_key(key);
@@ -61,7 +59,7 @@ void Writer::end_array()
 
     if(m_mode.empty() || m_mode.top() != IN_ARRAY)
     {
-        throw std::runtime_error("Invalid state");
+        throw json_error("Writer::end_array failed: Invalid state");
     }
 
     m_mode.pop();
@@ -101,7 +99,7 @@ void Writer::end_map()
 
     if(m_mode.empty() || m_mode.top() != IN_MAP)
     {
-        throw std::runtime_error("Invalid state");
+        throw json_error("Writer::end_map failed: Invalid state");
     }
 
     m_sizes.pop();
@@ -210,12 +208,12 @@ void Writer::handle_key(const std::string &key)
 
     if(m_mode.empty())
     {
-        throw std::runtime_error("Invalid state");
+        throw json_error("Writer::handle_key failed: Initial key needs to be empty string.");
     }
 
     if(m_mode.top() == DONE)
     {
-        throw std::runtime_error("Cannot write more. Already done");
+        throw json_error("Cannot write more. Already done");
     }
 
     auto size = m_sizes.top();

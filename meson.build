@@ -5,7 +5,7 @@ inc_dirs = include_directories('/usr/local/include', 'include/', get_option('pre
 gtest = dependency('gtest')
 gmock = dependency('gmock')
 
-compile_args = ['-std=c++17', '-Wextra', '-Werror', '-Wno-implicit-exception-spec-mismatch'] # Remove me once clang issue is fixed in SGX SDK
+compile_args = ['-std=c++17', '-Wextra', '-Wno-implicit-exception-spec-mismatch', '-Werror'] # Remove me once clang issue is fixed in SGX SDK
 
 if get_option('use_geo') == true
     compile_args = compile_args + ['-DUSE_GEO']
