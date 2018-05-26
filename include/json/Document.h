@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include "defines.h"
 #include "bitstream.h"
 
@@ -44,6 +45,13 @@ public:
      * Creates an object from a JSON string
      */
     explicit Document(const std::string& str);
+
+#ifndef IS_ENCLAVE
+    /**
+     * Load from a binary file
+     */
+    explicit Document(std::ifstream &file);
+#endif
 
     Document(const uint8_t *data, uint32_t length, DocumentMode mode);
     Document(uint8_t *data, uint32_t length, DocumentMode mode);

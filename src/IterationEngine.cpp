@@ -3,6 +3,7 @@
 #include "json/json_error.h"
 
 #include "defines.h"
+#include <string>
 using std::to_string;
 
 namespace json

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string>
-#include <vector>
 
 #include "json/json.h"
+
+#include <string>
+#include <vector>
 
 namespace json
 {

@@ -57,6 +57,13 @@ inline void skip_child(bitstream &view)
     }
 }
 
+#ifndef IS_ENCLAVE
+Document::Document(std::ifstream &file)
+{
+    m_content << file;
+}
+#endif
+
 Document::Document(const std::string &str)
 {
     if(str.empty())
@@ -295,7 +302,7 @@ Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode)
     }
     else
     {
-        throw std::runtime_error("Unknown Doucment mode");
+        throw json_error("Unknown Doucment mode");
     }
 
     m_content.move_to(0);
@@ -431,7 +438,7 @@ uint32_t Document::get_size() const
         return size;
     }
     default:
-        throw std::runtime_error("Object is not a map or array!");
+        throw json_error("Object is not a map or array!");
     }
 }
 
@@ -461,7 +468,7 @@ bitstream Document::as_bitstream() const
 
     if(type != ObjectType::Binary)
     {
-        throw std::runtime_error("Not a binary object");
+        throw json_error("Not a binary object");
     }
 
     uint32_t size;
@@ -481,7 +488,7 @@ const uint8_t* Document::as_binary() const
     view >> type;
 
     if(type != ObjectType::Binary)
-        throw std::runtime_error("Not a binary object");
+        throw json_error("Not a binary object");
 
     return view.current();
 }*/
@@ -496,7 +503,7 @@ json::integer_t Document::as_integer() const
 
     if(type != ObjectType::Integer)
     {
-        throw std::runtime_error("Not an integer!");
+        throw json_error("Not an integer!");
     }
 
     json::integer_t i;
@@ -514,7 +521,7 @@ json::float_t Document::as_float() const
 
     if(type != ObjectType::Float)
     {
-        throw std::runtime_error("Not a float!");
+        throw json_error("Not a float!");
     }
 
     json::float_t f;
@@ -540,7 +547,7 @@ bool Document::as_boolean() const
     }
     else
     {
-        throw std::runtime_error("Not a boolean!");
+        throw json_error("Not a boolean!");
     }
 }
 
@@ -556,7 +563,7 @@ geo::vector2d Document::as_vector2() const
 
     if(type != ObjectType::Vector2)
     {
-        throw std::runtime_error("Not a vector");
+        throw json_error("Not a vector");
     }
 
     geo::vector2d res;
@@ -577,7 +584,7 @@ std::string Document::as_string() const
 
     if(type != ObjectType::String)
     {
-        throw std::runtime_error("Not a string!");
+        throw json_error("Not a string!");
     }
 
     std::string str;
@@ -639,7 +646,7 @@ void Diff::compress(bitstream &bstream, bool write_size) const
     }
     else
     {
-        throw std::runtime_error("Unknown diff type");
+        throw json_error("Unknown diff type");
     }
 
     std::string path;

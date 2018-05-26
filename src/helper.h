@@ -1,8 +1,7 @@
 #pragma once
 
+#include <string>
 #include "DocumentTraversal.h"
-
-using std::to_string;
 
 namespace json
 {
@@ -208,13 +207,13 @@ private:
             if(i < size1)
             {
                 has_first = true;
-                path1.push_back(to_string(i));
+                path1.push_back(std::to_string(i));
             }
 
             if(j < size2)
             {
                 has_second = true;
-                path2.push_back(to_string(j));
+                path2.push_back(std::to_string(j));
             }
 
             if(i == j && has_first && has_second)
@@ -427,7 +426,7 @@ private:
 
         for(uint32_t i = 0; i < size; ++i)
         {
-            m_current_path.push_back(to_string(i));
+            m_current_path.push_back(std::to_string(i));
             parse_next();
             m_current_path.pop_back();
         }

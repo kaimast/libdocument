@@ -264,7 +264,7 @@ private:
 
         for(uint32_t i = 0; i < size; ++i)
         {
-            if(parse_next(to_string(i)))
+            if(parse_next(std::to_string(i)))
                 found = true;
         }
 

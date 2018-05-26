@@ -1,12 +1,10 @@
 #include "Parser.h"
 #include "json.h"
 
-using std::to_string;
-
 namespace json
 {
 
-inline std::runtime_error make_parse_error(const std::string &msg, const std::string &str, const std::string &expected, const std::string::const_iterator &it)
+inline json_error make_parse_error(const std::string &msg, const std::string &str, const std::string &expected, const std::string::const_iterator &it)
 {
     std::string out;
     out += msg + ": <" + str + ">. ";
@@ -23,7 +21,7 @@ inline std::runtime_error make_parse_error(const std::string &msg, const std::st
         out += '\"';
     }
 
-    return std::runtime_error(out);
+    return json_error(out);
 }
 
 Parser::Parser(const std::string& str_, bitstream &result_)
@@ -87,7 +85,7 @@ void Parser::parse(const std::string &key)
         parse_datetime(key);
         break;
     default:
-        throw std::runtime_error("Invalid JSON value");
+        throw json_error("Invalid JSON value");
     }
 }
 
@@ -113,7 +111,7 @@ void Parser::parse_datetime(const std::string &key)
 {
     if(!check_string("d\""))
     {
-        throw std::runtime_error("Not a datetime structure!");
+        throw json_error("Not a datetime structure!");
     }
 
     enum class parse_state
@@ -173,7 +171,7 @@ void Parser::parse_datetime(const std::string &key)
                 val.tm_sec = i;
                 break;
             default:
-                throw std::runtime_error("unknown datetime parse state");
+                throw json_error("unknown datetime parse state");
                 break;
             }
 
@@ -187,7 +185,7 @@ void Parser::parse_datetime(const std::string &key)
 
     if(state != parse_state::Done)
     {
-        throw std::runtime_error("Failed to parse datetime");
+        throw json_error("Failed to parse datetime");
     }
 
     //TODO check/support for other formats
@@ -246,7 +244,7 @@ void Parser::parse_map(const std::string &key)
 
     if(*it != '}')
     {
-        throw std::runtime_error("Map not terminated!");
+        throw json_error("Map not terminated!");
     }
 
     ++it;
@@ -303,7 +301,7 @@ void Parser::parse_true(const std::string &key)
 {
     if(!check_string(keyword(TRUE)))
     {
-        throw std::runtime_error("Not a valid boolean");
+        throw json_error("Not a valid boolean");
     }
 
     writer.write_boolean(key, true);
@@ -313,7 +311,7 @@ void Parser::parse_false(const std::string &key)
 {
     if(!check_string(keyword(FALSE)))
     {
-        throw std::runtime_error("Not a valid boolean");
+        throw json_error("Not a valid boolean");
     }
 
     writer.write_boolean(key, false);
@@ -323,7 +321,7 @@ void Parser::parse_null(const std::string &key)
 {
     if(!check_string(keyword(NIL)))
     {
-        throw std::runtime_error("Not a valid null value");
+        throw json_error("Not a valid null value");
     }
 
     writer.write_null(key);
@@ -333,7 +331,7 @@ void Parser::parse_array(const std::string &key)
 {
     if(it == str.end() || *it != '[')
     {
-        throw std::runtime_error("Not a valid array!");
+        throw json_error("Not a valid array!");
     }
 
     ++it;
@@ -355,14 +353,14 @@ void Parser::parse_array(const std::string &key)
         {
             if(it == str.end() || *it != ',')
             {
-                throw std::runtime_error("Not a valid array");
+                throw json_error("Not a valid array");
             }
 
             ++it;
             skip_whitespace();
         }
 
-        parse(to_string(pos));
+        parse(std::to_string(pos));
         pos++;
     }
 
@@ -370,7 +368,7 @@ void Parser::parse_array(const std::string &key)
 
     if(*it != ']')
     {
-        throw std::runtime_error("Array not terminated!");
+        throw json_error("Array not terminated!");
     }
 
     ++it;
@@ -387,7 +385,7 @@ std::string Parser::read_string()
 {
     if(it == str.end() || *it != '"')
     {
-        throw std::runtime_error("Not a valid string");
+        throw json_error("Not a valid string");
     }
 
     ++it;
@@ -401,7 +399,7 @@ std::string Parser::read_string()
 
     if(it == str.end())
     {
-        throw std::runtime_error("String not terminated!");
+        throw json_error("String not terminated!");
     }
 
     ++it;
