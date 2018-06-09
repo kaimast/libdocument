@@ -133,7 +133,7 @@ void Parser::parse_datetime(const std::string &key)
 
     for(;it != str.end() && state != parse_state::Done; ++it)
     {
-        if(isspace(*it) || *it == '-' || *it == ':' || *it == '"')
+        if(isspace(*it) != 0 || *it == '-' || *it == ':' || *it == '"')
         {
             if(temp.empty())
             {
@@ -260,7 +260,7 @@ void Parser::parse_number(const std::string &key)
 
     while (it2 != str.end())
     {
-        if(!(isdigit(*it2) || *it2 == '+' ||
+        if(!(isdigit(*it2) != 0 || *it2 == '+' ||
              *it2 == '-' || *it2 == '.' ||
              *it2 == 'e' || *it2 == 'E' ))
         {

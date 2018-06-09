@@ -316,7 +316,7 @@ private:
         {
             if(type == ObjectType::Integer)
             {
-                static_assert(sizeof(json::integer_t) == sizeof(json::float_t));
+                static_assert(sizeof(json::integer_t) == sizeof(json::float_t), "integer and float must have same size");
 
                 json::integer_t value;
                 m_view >> value;
