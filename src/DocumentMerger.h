@@ -1,3 +1,4 @@
+#include <stdbitstream.h>
 #include "DocumentTraversal.h"
 
 namespace json

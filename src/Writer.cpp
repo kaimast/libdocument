@@ -1,3 +1,4 @@
+#include <stdbitstream.h>
 #include "json/json.h"
 
 namespace json
