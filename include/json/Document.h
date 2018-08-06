@@ -1,9 +1,9 @@
 #pragma once
 
 #include <fstream>
-#include "defines.h"
-#include "bitstream.h"
+#include <stdbitstream.h>
 
+#include "json/defines.h"
 #include "json/Diff.h"
 #include "json/Iterator.h"
 
