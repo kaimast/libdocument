@@ -39,4 +39,13 @@ private:
     Writer writer;
 };
 
+inline void Parser::skip_whitespace()
+{
+    while(*it == ' ' || *it == '\n' || *it == '\t')
+    {
+        ++it;
+    }
+}
+
+
 }

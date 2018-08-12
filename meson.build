@@ -48,4 +48,4 @@ subdir('test')
 e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
 test('libdocument-test', e)
 
-install_subdir('include/json', install_dir : 'include')
+install_subdir('include/librelay', install_dir : 'include')

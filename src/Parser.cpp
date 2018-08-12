@@ -240,6 +240,8 @@ void Parser::parse_map(const std::string &key)
         skip_whitespace();
 
         parse(child_key);
+
+        skip_whitespace();
     }
 
     if(*it != '}')
@@ -362,6 +364,8 @@ void Parser::parse_array(const std::string &key)
 
         parse(std::to_string(pos));
         pos++;
+
+        skip_whitespace();
     }
 
     skip_whitespace();
@@ -404,14 +408,6 @@ std::string Parser::read_string()
 
     ++it;
     return result;
-}
-
-void Parser::skip_whitespace()
-{
-    while(*it == ' ' || *it == '\n' || *it == '\t')
-    {
-        ++it;
-    }
 }
 
 }
