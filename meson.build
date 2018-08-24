@@ -25,6 +25,8 @@ sgx_tstdcxx_dep = cpp.find_library('sgx_tcxx', dirs: sgx_library_path, required:
 sgx_trts_dep = cpp.find_library('sgx_trts', dirs: sgx_library_path, required: false)
 
 if sgx_tstdc_dep.found() and sgx_tstdcxx_dep.found() and sgx_trts_dep.found()
+    message('SGX found')
+
     sgx_tlibc_incdir = include_directories(get_option('sgx_sdk_dir') +'/include/tlibc')
     sgx_stdcxx_incdir = include_directories(get_option('sgx_sdk_dir') +'/include/libcxx')
     sgx_incdir = include_directories(get_option('sgx_sdk_dir') + '/include')

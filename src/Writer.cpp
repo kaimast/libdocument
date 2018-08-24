@@ -203,7 +203,7 @@ void Writer::handle_key(const std::string &key)
         }
         else if(m_mode.top() != IN_ARRAY)
         {
-            throw std::runtime_error("Empty key only valid for initial object or in arrays!");
+            throw json_error("Empty key only valid for initial object or in arrays!");
         }
     }
 

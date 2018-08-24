@@ -157,7 +157,7 @@ public:
                 return parse_array();
                 break;
             default:
-                throw std::runtime_error("we shouldn't be here");
+                throw json_error("we shouldn't be here");
             }
         }
     }
@@ -216,7 +216,7 @@ private:
         {
             if(path.size() < 2)
             {
-                throw std::runtime_error("Invalid state");
+                throw json_error("Invalid state");
             }
 
             bitstream data;

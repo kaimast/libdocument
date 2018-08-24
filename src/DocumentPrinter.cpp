@@ -15,7 +15,7 @@ void Printer::handle_key(const std::string &key)
     {
         if(!mode.empty())
         {
-            throw std::runtime_error("invalid state: key stack is empty but mode isn't");
+            throw json_error("invalid state: key stack is empty but mode isn't");
         }
         return;
     }
@@ -40,7 +40,7 @@ void Printer::handle_key(const std::string &key)
     }
     else
     {
-        throw std::runtime_error("Unknown parse mode");
+        throw json_error("Unknown parse mode");
     }
 }
 

@@ -49,7 +49,7 @@ void PredicateChecker::push_key(const std::string &key)
 {
     if(key.empty())
     {
-        throw std::runtime_error("cannot push empty key");
+        throw json_error("cannot push empty key");
     }
 
     if(key == keyword(IN))
@@ -115,7 +115,7 @@ void PredicateChecker::push_key(const std::string &key)
         }
         else
         {
-            throw std::runtime_error("unexpected");
+            throw json_error("invalid state");
         }
 
         m_pred_values.clear();
@@ -167,7 +167,7 @@ void PredicateChecker::pop_path()
 
     if(m_path.size() < count || m_path.size() != m_mode.size())
     {
-        throw std::runtime_error("invalid state");
+        throw json_error("invalid state");
     }
 
     for(size_t i = 0; i < count; ++i)

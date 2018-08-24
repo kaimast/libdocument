@@ -110,7 +110,7 @@ void Search::parse_next()
     case ObjectType::Null:
         break;
     default:
-        throw std::runtime_error("Document search failed: Unknown object type");
+        throw json_error("Document search failed: Unknown object type");
     }
 }
 

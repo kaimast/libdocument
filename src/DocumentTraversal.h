@@ -57,7 +57,7 @@ public:
         case ObjectType::Null:
             break;
         default:
-            throw std::runtime_error("Document traversal failed: Unknown object type");
+            throw json_error("Document traversal failed: Unknown object type");
         }
     }
 };

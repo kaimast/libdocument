@@ -25,7 +25,7 @@ private:
     {
         if(path1 != path2)
         {
-            throw std::runtime_error("Invalid state");
+            throw json_error("Invalid state");
         }
 
         uint32_t start = view2.pos();
@@ -99,7 +99,7 @@ private:
             case ObjectType::Null:
                 break;
             default:
-                throw std::runtime_error("Document diff failed: unknown object type");
+                throw json_error("Document diff failed: unknown object type");
             }
         }
     }
@@ -141,7 +141,7 @@ private:
             {
                 if(key1.empty())
                 {
-                    throw std::runtime_error("Invalid state");
+                    throw json_error("Invalid state");
                 }
                 
                 parse_next(diffs, inside_diff);
@@ -276,7 +276,7 @@ public:
 
         if(t != ObjectType::Integer && t != ObjectType::Float && t != ObjectType::String)
         {
-            throw std::runtime_error("Add not defined on type type!");
+            throw json_error("Add not defined on type type!");
         }
 
         parse_next();
@@ -373,7 +373,7 @@ private:
             case ObjectType::String:
             case ObjectType::Integer:
             case ObjectType::Float:
-                throw std::runtime_error("Invalid path");
+                throw json_error("Invalid path");
                 break;
             case ObjectType::Map:
                 parse_map();
@@ -386,7 +386,7 @@ private:
             case ObjectType::Null:
                 break;
             default:
-                throw std::runtime_error("Document add failed: unknown object type");
+                throw json_error("Document add failed: unknown object type");
             }
         }
     }
