@@ -233,6 +233,12 @@ inline bool operator==(const json::Document &first, const json::Document &second
 {
     return first.data() == second.data();
 }
+
+inline bool operator!=(const json::Document &first, const json::Document &second)
+{
+    return !(first == second);
+}
+
 }
 
 inline bitstream& operator<<(bitstream &bs, const json::Document& doc)
