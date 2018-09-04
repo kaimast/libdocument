@@ -195,7 +195,11 @@ protected:
 class String : public Document
 {
 public:
+    String(const char *str);
+
     String(const std::string &str);
+
+    void operator=(const std::string &str);
 };
 
 class Binary : public Document

@@ -682,6 +682,17 @@ void Diff::compress(bitstream &bstream, bool write_size) const
 
 String::String(const std::string &str)
 {
+    *this = str;
+}
+
+String::String(const char* string)
+{
+    std::string str = string;
+    *this = str;
+}
+
+void String::operator=(const std::string &str)
+{
     uint32_t length = str.size();
     m_content << ObjectType::String;
     m_content << length;
