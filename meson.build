@@ -3,7 +3,6 @@ project('libdocument', 'cpp')
 inc_dirs = include_directories('/usr/local/include', 'include/', get_option('prefix')+'/include')
 
 gtest = dependency('gtest')
-gmock = dependency('gmock')
 
 compile_args = ['-std=c++17', '-Wextra', '-Wno-implicit-exception-spec-mismatch', '-Werror'] # Remove me once clang issue is fixed in SGX SDK
 
@@ -47,7 +46,7 @@ endif
 
 subdir('test')
 
-e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest, gmock], include_directories: inc_dirs)
+e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], include_directories: inc_dirs)
 test('libdocument-test', e)
 
 install_subdir('include/json', install_dir : 'include')
