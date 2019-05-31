@@ -1,6 +1,6 @@
 project('libdocument', 'cpp')
 
-inc_dirs = include_directories('/usr/local/include', 'include/', get_option('prefix')+'/include')
+inc_dirs = include_directories('include/', get_option('prefix')+'/include', '/usr/local/include')
 
 gtest = dependency('gtest')
 
@@ -50,3 +50,23 @@ e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], 
 test('libdocument-test', e)
 
 install_subdir('include/json', install_dir : 'include')
+
+# NOTE: gtest on ubuntu still uses deprecated functions so we can't lint the test files yet
+clangtidy = find_program('clang-tidy', required: false)
+
+if clangtidy.found()
+    tidy_files = cpp_files
+
+    run_target(
+        'tidy',
+        command: [
+            'scripts/clang-tidy.sh',
+            clangtidy.path(),
+            meson.source_root(),
+            meson.build_root(),
+            tidy_files
+        ],
+    depends: [doc])
+endif
+
+

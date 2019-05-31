@@ -3,8 +3,8 @@
 namespace json
 {
 
-Search::Search(const Document &document, const std::string &path)
-    : m_document(document), m_target_path(path)
+Search::Search(const Document &document, std::string path)
+    : m_document(document), m_target_path(std::move(path))
 {
     m_view.assign(m_document.data().data(), m_document.data().size(), true);
 }

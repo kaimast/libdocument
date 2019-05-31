@@ -3,8 +3,6 @@
 #include "defines.h"
 #include "json.h"
 
-using std::to_string;
-
 namespace json
 {
 

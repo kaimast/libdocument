@@ -199,7 +199,7 @@ public:
 
     String(const std::string &str);
 
-    void operator=(const std::string &str);
+    String& operator=(const std::string &str);
 };
 
 class Binary : public Document

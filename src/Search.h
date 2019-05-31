@@ -14,7 +14,7 @@ namespace json
 class Search : public DocumentTraversal
 {
 public:
-    Search(const Document &document, const std::string &path);
+    Search(const Document &document, std::string path);
 
     bool do_search()
     {

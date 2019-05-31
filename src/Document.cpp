@@ -12,8 +12,6 @@
 #include <list>
 #include <stack>
 
-using std::to_string;
-
 namespace json
 {
 
@@ -691,7 +689,7 @@ String::String(const char* string)
     *this = str;
 }
 
-void String::operator=(const std::string &str)
+String& String::operator=(const std::string &str)
 {
     uint32_t length = str.size();
     m_content << ObjectType::String;
@@ -701,6 +699,8 @@ void String::operator=(const std::string &str)
         m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
     }
     m_content.move_to(0);
+
+    return *this;
 }
 
 Integer::Integer(const integer_t i)
