@@ -3,6 +3,8 @@
 BUILDTYPE=release
 INSTALL_DIR=$HOME/local
 
+mkdir -p ${INSTALL_DIR}
+
 export LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib
 export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib
 
