@@ -16,4 +16,4 @@ cp  ${MESON_ROOT}/compile_commands.json ${TIDY_DIR}
 sed -i 's/-pipe//g' ${TIDY_DIR}/compile_commands.json
 
 echo "Running clang checks: ${CHECKS}"
-$BIN -checks=${CHECKS} -warnings-as-errors=* -p ${TIDY_DIR} $@
+$BIN -header-filter=${PROJECT_ROOT}/src/*.h,${PROJECT_ROOT}/include/*.h -checks=${CHECKS} -warnings-as-errors=* -p ${TIDY_DIR} $@
