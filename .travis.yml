@@ -9,7 +9,6 @@ cache:
 
 script:
     - bash ci/install-packages.sh
-    - bash ci/setup-prereq-ext.sh
     - bash ci/setup-prereq.sh
     - bash ci/setup-libdocument.sh
     - bash ci/unit-tests.sh
