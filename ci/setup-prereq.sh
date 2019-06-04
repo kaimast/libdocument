@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-WEAVEDIR=`pwd`
 WORKDIR=$HOME/prereq
 INSTALL_DIR=$HOME/local
 
@@ -12,7 +11,7 @@ export LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x8
 export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x86_64-linux-gnu
 
 mkdir -p ${WORKDIR}
-mkdir -p ${INSTALL_DIR}
+mkdir -p ${INSTALL_DIR}/include
 
 function clone-repo() {
     dir=$1
