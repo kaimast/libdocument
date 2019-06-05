@@ -608,6 +608,7 @@ json::Document Diff::as_document() const
 
     bstream.detach(data, len);
 
+    //NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
     return json::Document(data, len, json::DocumentMode::ReadWrite);
 }
 
