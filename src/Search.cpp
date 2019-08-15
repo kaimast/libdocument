@@ -105,6 +105,11 @@ void Search::parse_next()
         m_view.move_by(len);
         break;
     }
+    case ObjectType::Datetime:
+    {
+        m_view.move_by(sizeof(time_t));
+        break;
+    }
     case ObjectType::True:
     case ObjectType::False:
     case ObjectType::Null:
