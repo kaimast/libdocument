@@ -30,7 +30,7 @@ if sgx_tstdc_dep.found() and sgx_tstdcxx_dep.found() and sgx_trts_dep.found()
     sgx_stdcxx_incdir = include_directories(get_option('sgx_sdk_dir') +'/include/libcxx')
     sgx_incdir = include_directories(get_option('sgx_sdk_dir') + '/include')
 
-    sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-std=c++14', '-nostdinc++']
+    sgx_compile_args = compile_args + ['-DIS_ENCLAVE', '-nostdinc', '-fpie', '-fstack-protector', '-nostdinc++']
      
     doc_sgx = static_library('document_sgx', cpp_files,
         c_args: sgx_compile_args,
