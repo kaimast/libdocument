@@ -207,7 +207,7 @@ TEST(Basic, get_key)
 {
     Document doc("{\"a\":42, \"b\": \"foobar\"}");
    
-    EXPECT_EQ(doc.get_size(), 2);
+    EXPECT_EQ(doc.get_size(), 2U);
     EXPECT_EQ(doc.get_key(1), "b");
 }
 
@@ -215,7 +215,7 @@ TEST(Basic, get_child)
 {
     Document doc("{\"a\":42, \"b\": \"foobar\"}");
    
-    EXPECT_EQ(doc.get_size(), 2);
+    EXPECT_EQ(doc.get_size(), 2U);
     EXPECT_EQ(doc.get_child(1).as_string(), "foobar");
 }
 
@@ -269,7 +269,7 @@ TEST(Basic, no_diffs)
     Document doc2("{\"a\":42}");
 
     auto diffs = doc1.diff(doc2);
-    EXPECT_EQ(diffs.size(), 0);
+    EXPECT_EQ(diffs.size(), 0U);
 }
 
 TEST(Basic, diffs)
@@ -279,7 +279,7 @@ TEST(Basic, diffs)
 
     auto diffs = doc1.diff(doc2);
 
-    EXPECT_EQ(diffs.size(), 1);
+    EXPECT_EQ(diffs.size(), 1U);
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":2}"));
 }
 
@@ -306,7 +306,7 @@ TEST(Basic, diffs_str)
 
     auto diffs = doc1.diff(doc2);
 
-    EXPECT_EQ(diffs.size(), 1);
+    EXPECT_EQ(diffs.size(), 1U);
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"modified\",\"path\":\"a\",\"new_value\":\"we go\"}"));
 }
 
@@ -317,7 +317,7 @@ TEST(Basic, diff_deleted)
 
     auto diffs = doc1.diff(doc2);
 
-    EXPECT_EQ(diffs.size(), 1);
+    EXPECT_EQ(diffs.size(), 1U);
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"deleted\",\"path\":\"a\"}"));
 }
 
@@ -328,7 +328,7 @@ TEST(Basic, diff_added)
 
     auto diffs = doc1.diff(doc2);
 
-    EXPECT_EQ(diffs.size(), 1);
+    EXPECT_EQ(diffs.size(), 1U);
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"b\",\"value\":\"we go\"}"));
 }
 
@@ -339,7 +339,7 @@ TEST(Basic, diff_added_array)
 
     auto diffs = doc1.diff(doc2);
 
-    EXPECT_EQ(diffs.size(), 1);
+    EXPECT_EQ(diffs.size(), 1U);
     EXPECT_EQ(diffs.begin()->as_document(), json::Document("{\"type\":\"added\",\"path\":\"1\",\"value\":\"we go\"}"));
 }
 
