@@ -6,6 +6,7 @@ BUILDTYPE=release
 export LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x86_64-linux-gnu
 export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x86_64-linux-gnu
 
+echo "Building bistream"
 cd deps/bitstream
 meson setup build
 cd build
