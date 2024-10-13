@@ -12,7 +12,8 @@ endif
 
 subdir('src')
 
-doc = shared_library('document', cpp_files, include_directories: inc_dirs, install: true, cpp_args: compile_args)
+doc = shared_library('document', cpp_files,
+    include_directories: inc_dirs, install: true, cpp_args: compile_args)
 doc_dep = declare_dependency(link_with: doc)
 
 cpp = meson.get_compiler('cpp')
@@ -46,7 +47,9 @@ endif
 
 subdir('test')
 
-unit_tests_bin = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], include_directories: inc_dirs, cpp_args: compile_args)
+unit_tests_bin = executable('libdocument-test', test_files,
+    dependencies : [doc_dep, gtest],
+    include_directories: inc_dirs, cpp_args: compile_args)
 
 run_target(
     'unit-tests',

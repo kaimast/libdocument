@@ -1,9 +1,12 @@
-#! /bin/bash
+#!/bin/bash -e
 
 INSTALL_DIR=$HOME/local
+BUILDTYPE=release
 
 export LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x86_64-linux-gnu
 export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib/x86_64-linux-gnu
 
+cd deps/bitstream
+meson setup build
 cd build
-./libdocument-test
+ninja install  -Dbuildtype=$BUILDTYPE --prefix=$INSTALL_DIR

@@ -19,7 +19,8 @@ jobs:
       - name: Install dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install meson build-essential git g++ libgtest-dev libgflags-dev
+            sudo apt-get install meson build-essential git g++ \
+                libgtest-dev libgflags-dev
       - name: Setup Prerequisites
         run: bash ci/setup-prereq.sh
       - name: Build libdocument 
@@ -27,7 +28,7 @@ jobs:
             meson build -Dbuildtype=release --prefix=$HOME/local
             cd build
             ninja
-      - name: Lint Checks 
-        run: cd build && ninja lint
+      - name: Unit Tests 
+        run: cd build && ninja unit-tests 
       - name: Formatting Checks 
         run: cd build && ninja clang-format-check 
