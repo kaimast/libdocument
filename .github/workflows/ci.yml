@@ -22,7 +22,7 @@ jobs:
             sudo apt-get install meson build-essential git g++ \
                 libgtest-dev libgflags-dev
       - name: Setup Prerequisites
-        run: bash ci/setup-prereq.sh
+        run: bash scripts/setup-prereq.sh
       - name: Build libdocument 
         run: |
             meson build -Dbuildtype=release --prefix=$HOME/local
