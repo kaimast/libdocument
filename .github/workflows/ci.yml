@@ -27,7 +27,7 @@ jobs:
         run: bash scripts/setup-prereq.sh
       - name: Build libdocument 
         run: |
-            meson build -Dbuildtype=release --prefix=$HOME/local
+            meson setup build -Dbuildtype=release --prefix=$HOME/local
             cd build
             ninja
       - name: Unit Tests 
