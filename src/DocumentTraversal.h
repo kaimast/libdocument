@@ -1,8 +1,8 @@
 #pragma once
 
 #include "defines.h"
-#include "json/json_error.h"
 #include "json/defines.h"
+#include "json/json_error.h"
 
 using std::to_string;
 

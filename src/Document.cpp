@@ -391,15 +391,14 @@ bitstream Document::as_bitstream() const {
     return result;
 }
 
-const uint8_t* Document::as_binary() const
-{
+const uint8_t *Document::as_binary() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Binary) {
+    if (type != ObjectType::Binary) {
         throw json_error("Not a binary object");
     }
 
