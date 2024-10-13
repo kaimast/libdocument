@@ -390,7 +390,7 @@ bitstream Document::as_bitstream() const {
     result.assign(view.current(), size, true);
     return result;
 }
-/*
+
 const uint8_t* Document::as_binary() const
 {
     bitstream view;
@@ -399,11 +399,12 @@ const uint8_t* Document::as_binary() const
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Binary)
+    if(type != ObjectType::Binary) {
         throw json_error("Not a binary object");
+    }
 
     return view.current();
-}*/
+}
 
 json::integer_t Document::as_integer() const {
     bitstream view;

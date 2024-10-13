@@ -48,8 +48,9 @@ TEST(Basic, compress_two) {
 }
 
 TEST(Basic, binary) {
-    constexpr uint32_t length = 1235;
+    const auto length = 1235;
     uint8_t value[length];
+    memset(value, 0, length);
 
     json::Binary bin(value, length);
 

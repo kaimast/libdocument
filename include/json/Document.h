@@ -77,6 +77,7 @@ public:
     geo::vector2d as_vector2() const;
 #endif
 
+    const uint8_t* as_binary() const;
     std::string as_string() const;
     integer_t as_integer() const;
     float_t as_float() const;
