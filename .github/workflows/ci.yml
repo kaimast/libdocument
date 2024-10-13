@@ -18,11 +18,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install dependencies
+      - name: Install Packages
         run: |
             sudo apt-get update
-            sudo apt-get install meson build-essential git g++ \
-                libgtest-dev libgflags-dev
+            sudo apt-get install meson build-essential git \
+                libgtest-dev libgflags-dev clang-tidy clang
       - name: Setup Prerequisites
         run: bash scripts/setup-prereq.sh
       - name: Build libdocument 
