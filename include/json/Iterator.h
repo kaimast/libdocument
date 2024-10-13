@@ -19,6 +19,6 @@ public:
     virtual void handle_array_start(const std::string &key) = 0;
     virtual void handle_array_end() = 0;
     virtual void handle_binary(const std::string &key, const uint8_t *data, uint32_t size) = 0;
-    virtual void handle_datetime(const std::string &key, const tm& value) = 0;
+    virtual void handle_datetime(const std::string &key, const tm &value) = 0;
 };
-}
+} // namespace json

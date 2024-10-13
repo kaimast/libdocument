@@ -2,20 +2,18 @@
 
 #include "json/json.h"
 
-namespace json
-{
+namespace json {
 
 /**
  * Helper class to convert a JSON string to a binary object
  */
-class Parser
-{
-public:
+class Parser {
+  public:
     Parser(const std::string &str_, bitstream &result_);
 
     void do_parse();
 
-private:
+  private:
     void parse(const std::string &key);
 
     void skip_whitespace();
@@ -39,13 +37,10 @@ private:
     Writer writer;
 };
 
-inline void Parser::skip_whitespace()
-{
-    while(*it == ' ' || *it == '\n' || *it == '\t')
-    {
+inline void Parser::skip_whitespace() {
+    while (*it == ' ' || *it == '\n' || *it == '\t') {
         ++it;
     }
 }
 
-
-}
+} // namespace json

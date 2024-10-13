@@ -3,9 +3,9 @@
 #include <fstream>
 #include <stdbitstream.h>
 
-#include "json/defines.h"
 #include "json/Diff.h"
 #include "json/Iterator.h"
+#include "json/defines.h"
 
 #ifdef USE_GEO
 #include "geo/vector2.h"
@@ -25,7 +25,7 @@ public:
     Document(const Document &parent, const std::vector<std::string> &paths, bool force = false);
 
     /**
-     * Get a view of a specific child 
+     * Get a view of a specific child
      */
     Document(const Document &parent, const uint32_t pos);
 
@@ -44,7 +44,7 @@ public:
     /**
      * Creates an object from a JSON string
      */
-    explicit Document(const std::string& str);
+    explicit Document(const std::string &str);
 
 #ifndef IS_ENCLAVE
     /**
@@ -58,17 +58,11 @@ public:
 
     ~Document() = default;
 
-    void assign(bitstream &&data)
-    {
-        m_content = std::move(data);
-    }
+    void assign(bitstream &&data) { m_content = std::move(data); }
 
     bool valid() const;
 
-    bool empty() const
-    {
-        return get_type() == ObjectType::Null;
-    }
+    bool empty() const { return get_type() == ObjectType::Null; }
 
     ObjectType get_type() const;
 
@@ -95,7 +89,7 @@ public:
      * Add semantics are only supported for numeric types
      */
     bool add(const std::string &path, const json::Document &value);
-    
+
     /**
      * Get the key of the n-th child
      *
@@ -105,7 +99,7 @@ public:
      * \throws json_error if document is not a map
      */
     std::string get_key(size_t pos) const;
-    
+
     /**
      * Returns a read-only view of the child as position pos
      *
@@ -120,38 +114,23 @@ public:
 
     void iterate(Iterator &iterator) const;
 
-    const bitstream& data() const
-    {
-        return m_content;
-    }
+    const bitstream &data() const { return m_content; }
 
-    bitstream& data()
-    {
-        return m_content;
-    }
+    bitstream &data() { return m_content; }
 
-    void operator=(Document &&other)
-    {
-        m_content = std::move(other.m_content);
-    }
+    void operator=(Document &&other) { m_content = std::move(other.m_content); }
 
     /**
      * Discard contents of the document
      */
-    void clear()
-    {
-        m_content.clear();
-    }
+    void clear() { m_content.clear(); }
 
     /**
      * Returns a 64-bit hash of the content of this document
      */
     int64_t hash() const;
 
-    void detach_data(uint8_t* &data, uint32_t &len)
-    {
-        m_content.detach(data, len);
-    }
+    void detach_data(uint8_t *&data, uint32_t &len) { m_content.detach(data, len); }
 
     /**
      * Create an identical copy of this document
@@ -178,10 +157,7 @@ public:
     /**
      *  Size in bytes of this document
      */
-    size_t byte_size() const
-    {
-        return m_content.size();
-    }
+    size_t byte_size() const { return m_content.size(); }
 
     Diffs diff(const Document &other) const;
 
@@ -199,14 +175,13 @@ public:
 
     String(const std::string &str);
 
-    String& operator=(const std::string &str);
+    String &operator=(const std::string &str);
 };
 
 class Binary : public Document
 {
 public:
-    Binary(uint8_t *data, uint32_t length)
-        : Document()
+    Binary(uint8_t *data, uint32_t length) : Document()
     {
         m_content << ObjectType::Binary;
         m_content << length;
@@ -214,8 +189,7 @@ public:
         m_content.move_to(0);
     }
 
-    Binary(bitstream &bstream)
-        : Document()
+    Binary(bitstream &bstream) : Document()
     {
         m_content << ObjectType::Binary;
         m_content << static_cast<uint32_t>(bstream.size());
@@ -243,24 +217,23 @@ inline bool operator!=(const json::Document &first, const json::Document &second
     return !(first == second);
 }
 
-}
+} // namespace json
 
-inline bitstream& operator<<(bitstream &bs, const json::Document& doc)
+inline bitstream &operator<<(bitstream &bs, const json::Document &doc)
 {
     doc.compress(bs);
     return bs;
 }
 
-inline bitstream& operator>>(bitstream &bs, json::Document& doc)
+inline bitstream &operator>>(bitstream &bs, json::Document &doc)
 {
     doc = json::Document(bs);
     return bs;
 }
 
 #ifndef IS_ENCLAVE
-inline std::ostream& operator<<(std::ostream &os, const json::Document &doc)
+inline std::ostream &operator<<(std::ostream &os, const json::Document &doc)
 {
     return os << doc.str();
 }
 #endif
-

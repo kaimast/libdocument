@@ -1,25 +1,22 @@
-#include "helper.h"
 #include "DocumentMerger.h"
-#include "Search.h"
-#include "Projection.h"
 #include "Iterator.h"
-#include "PredicateChecker.h"
 #include "Parser.h"
+#include "PredicateChecker.h"
+#include "Projection.h"
+#include "Search.h"
+#include "helper.h"
 #include "json.h"
 
 #include <cctype>
 #include <ctime>
 
-namespace json
-{
+namespace json {
 
-inline void skip_child(bitstream &view)
-{
+inline void skip_child(bitstream &view) {
     ObjectType ctype;
     view >> ctype;
 
-    switch(ctype)
-    {
+    switch (ctype) {
 #ifdef USE_GEO
     case ObjectType::Vector2:
         view.move_by(sizeof(geo::vector2d));
@@ -28,8 +25,7 @@ inline void skip_child(bitstream &view)
     case ObjectType::Binary:
     case ObjectType::Map:
     case ObjectType::Array:
-    case ObjectType::String:
-    {
+    case ObjectType::String: {
         uint32_t byte_size;
         view >> byte_size;
         view.move_by(byte_size);
@@ -54,20 +50,13 @@ inline void skip_child(bitstream &view)
 }
 
 #ifndef IS_ENCLAVE
-Document::Document(std::ifstream &file)
-{
-    m_content << file;
-}
+Document::Document(std::ifstream &file) { m_content << file; }
 #endif
 
-Document::Document(const std::string &str)
-{
-    if(str.empty())
-    {
+Document::Document(const std::string &str) {
+    if (str.empty()) {
         m_content << ObjectType::Null;
-    }
-    else
-    {
+    } else {
         Parser parser(str, m_content);
         parser.do_parse();
     }
@@ -76,26 +65,20 @@ Document::Document(const std::string &str)
 }
 
 Document::Document(Document &&other) noexcept
-    : m_content(std::move(other.m_content))
-{
-}
+    : m_content(std::move(other.m_content)) {}
 
-Document::Document(bitstream &data)
-{
+Document::Document(bitstream &data) {
     uint32_t size = 0;
     data >> size;
-    if(size > 0)
-    {
+    if (size > 0) {
         m_content.write_raw_data(data.current(), size);
     }
     data.move_by(size);
     m_content.move_to(0);
 }
 
-bool Document::valid() const
-{
-    if(m_content.empty())
-    {
+bool Document::valid() const {
+    if (m_content.empty()) {
         return false;
     }
 
@@ -108,10 +91,8 @@ bool Document::valid() const
     return view.at_end();
 }
 
-bool Document::matches_predicates(const json::Document &predicates) const
-{
-    if(predicates.empty())
-    {
+bool Document::matches_predicates(const json::Document &predicates) const {
+    if (predicates.empty()) {
         return true;
     }
 
@@ -122,45 +103,35 @@ bool Document::matches_predicates(const json::Document &predicates) const
     return checker.get_result();
 }
 
-bool Document::insert(const std::string &path, const Document &doc)
-{
+bool Document::insert(const std::string &path, const Document &doc) {
     DocumentMerger merger(m_content, path, doc.m_content);
     return merger.do_merge();
 }
 
-int64_t Document::hash() const
-{
-    return m_content.hash();
-}
+int64_t Document::hash() const { return m_content.hash(); }
 
-Document Document::duplicate(bool force_copy) const
-{
+Document Document::duplicate(bool force_copy) const {
     json::Document out("");
     out.assign(m_content.duplicate(force_copy));
     return out;
 }
 
-void Document::compress(bitstream &bstream) const
-{
+void Document::compress(bitstream &bstream) const {
     uint32_t size = m_content.size();
     bstream << size;
 
-    if(size > 0)
-    {
+    if (size > 0) {
         bstream.write_raw_data(m_content.data(), m_content.size());
     }
 }
 
-void Document::iterate(json::Iterator &iterator) const
-{
+void Document::iterate(json::Iterator &iterator) const {
     json::IterationEngine engine(data(), iterator);
     engine.run();
 }
 
-std::string Document::str() const
-{
-    if(!valid())
-    {
+std::string Document::str() const {
+    if (!valid()) {
         return "";
     }
 
@@ -169,47 +140,41 @@ std::string Document::str() const
     return printer.get_result();
 }
 
-std::string Document::pretty_str(int indent) const
-{
+std::string Document::pretty_str(int indent) const {
     json::DocumentPrettyPrinter printer(indent);
     iterate(printer);
     return printer.get_result();
 }
 
-Document::Document(const Document& parent, const std::vector<std::string> &paths, bool force)
-{
+Document::Document(const Document &parent,
+                   const std::vector<std::string> &paths, bool force) {
     Projection proj(parent, paths, true);
     uint32_t num_found = proj.do_search(m_content);
 
-    if(num_found != paths.size() && force)
-    {
+    if (num_found != paths.size() && force) {
         throw json_error("Not all paths were found");
     }
 }
 
-Document::Document(const Document &parent, const uint32_t pos)
-{
+Document::Document(const Document &parent, const uint32_t pos) {
     bitstream view;
     view.assign(parent.m_content.data(), parent.m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Array)
-    {
+    if (type != ObjectType::Array) {
         throw json_error("Not an array");
     }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
 
-    if(pos >= size)
-    {
+    if (pos >= size) {
         throw json_error("out of array bounds!");
     }
 
-    for(uint32_t i = 0; i < pos; ++i)
-    {
+    for (uint32_t i = 0; i < pos; ++i) {
         ObjectType ot;
         view >> ot;
         DocumentTraversal::skip_next(ot, view);
@@ -222,31 +187,26 @@ Document::Document(const Document &parent, const uint32_t pos)
     DocumentTraversal::skip_next(ot, view);
     auto end = view.current();
 
-    m_content.assign(start, end-start, true);
+    m_content.assign(start, end - start, true);
 }
 
-Document::Document(const Document& parent, const std::string &path, bool force)
-{
+Document::Document(const Document &parent, const std::string &path,
+                   bool force) {
     /// Wildcard may match multiple paths so we need to do a full projection
-    if(path.find(keyword(WILDCARD)) != std::string::npos)
-    {
+    if (path.find(keyword(WILDCARD)) != std::string::npos) {
         std::vector<std::string> paths = {path};
 
         Projection proj(parent, paths, true);
         uint32_t num_found = proj.do_search(m_content);
 
-        if(num_found != paths.size() && force)
-        {
+        if (num_found != paths.size() && force) {
             throw json_error("Not all paths were found");
         }
-    }
-    else
-    {
+    } else {
         Search search(parent, path);
         bool success = search.do_search();
 
-        if(!success && force)
-        {
+        if (!success && force) {
             throw json_error("Path was not found");
         }
 
@@ -254,85 +214,61 @@ Document::Document(const Document& parent, const std::string &path, bool force)
     }
 }
 
-Document::Document(uint8_t *data, uint32_t length, DocumentMode mode)
-{
-    if(mode == DocumentMode::ReadOnly)
-    {
+Document::Document(uint8_t *data, uint32_t length, DocumentMode mode) {
+    if (mode == DocumentMode::ReadOnly) {
         m_content.assign(data, length, true);
-    }
-    else if(mode == DocumentMode::ReadWrite)
-    {
+    } else if (mode == DocumentMode::ReadWrite) {
         m_content.assign(data, length, false);
-    }
-    else if(mode == DocumentMode::Copy)
-    {
-        if(length > 0)
-        {
+    } else if (mode == DocumentMode::Copy) {
+        if (length > 0) {
             m_content.write_raw_data(data, length);
         }
-    }
-    else
-    {
+    } else {
         throw std::invalid_argument("Unknown Doucment mode");
     }
 
     m_content.move_to(0);
 }
 
-Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode)
-{
-    if(mode == DocumentMode::ReadWrite)
-    {
+Document::Document(const uint8_t *data, uint32_t length, DocumentMode mode) {
+    if (mode == DocumentMode::ReadWrite) {
         throw std::invalid_argument("Cannot modify read-only data");
-    }
-    else if(mode == DocumentMode::ReadOnly)
-    {
+    } else if (mode == DocumentMode::ReadOnly) {
         m_content.assign(data, length, true);
-    }
-    else if(mode == DocumentMode::Copy)
-    {
-        if(length > 0)
-        {
+    } else if (mode == DocumentMode::Copy) {
+        if (length > 0) {
             m_content.write_raw_data(data, length);
         }
-    }
-    else
-    {
+    } else {
         throw json_error("Unknown Doucment mode");
     }
 
     m_content.move_to(0);
 }
 
-Diff::Diff(DiffType type, const std::string &path, const uint8_t *value, uint32_t length)
-{
+Diff::Diff(DiffType type, const std::string &path, const uint8_t *value,
+           uint32_t length) {
     m_content << type << path << length;
 
-    if(length > 0)
-    {
+    if (length > 0) {
         m_content.write_raw_data(value, length);
     }
 }
 
-bool Document::add(const std::string &path, const json::Document &value)
-{
+bool Document::add(const std::string &path, const json::Document &value) {
     DocumentAdd adder(m_content, path, value);
 
-    try
-    {
+    try {
         adder.do_add();
         m_content.move_to(0);
         return true;
-    }
-    catch(json_error& e)
-    {
+    } catch (json_error &e) {
         m_content.move_to(0);
         return false;
     }
 }
 
-json::Document Document::get_child(size_t pos) const
-{
+json::Document Document::get_child(size_t pos) const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
@@ -341,69 +277,56 @@ json::Document Document::get_child(size_t pos) const
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Map && type != ObjectType::Array)
-    {
+    if (type != ObjectType::Map && type != ObjectType::Array) {
         throw json_error("Document is not a map or array");
     }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
 
-    if(pos >= size)
-    {
+    if (pos >= size) {
         throw std::invalid_argument("Position is out of bounds!");
     }
 
-    for(uint32_t i = 0; i < size; ++i)
-    {
-        if(type == ObjectType::Map)
-        {
+    for (uint32_t i = 0; i < size; ++i) {
+        if (type == ObjectType::Map) {
             std::string key;
             view >> key;
         }
 
-        if(i == pos)
-        {
+        if (i == pos) {
             break;
-        }
-        else
-        {
+        } else {
             skip_child(view);
         }
     }
 
-    return json::Document(view.current(), view.remaining_size(), DocumentMode::ReadOnly);
+    return json::Document(view.current(), view.remaining_size(),
+                          DocumentMode::ReadOnly);
 }
 
-std::string Document::get_key(size_t pos) const
-{
+std::string Document::get_key(size_t pos) const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Map)
-    {
+    if (type != ObjectType::Map) {
         throw json_error("Document is not a map");
     }
 
     uint32_t byte_size, size;
     view >> byte_size >> size;
 
-    if(pos >= size)
-    {
+    if (pos >= size) {
         throw std::invalid_argument("Position is out of bounds!");
     }
 
-    for(uint32_t i = 0; i < size; ++i)
-    {
-        if(i == pos)
-        {
+    for (uint32_t i = 0; i < size; ++i) {
+        if (i == pos) {
             break;
-        }
-        else
-        {
+        } else {
             std::string key;
             view >> key;
 
@@ -416,19 +339,16 @@ std::string Document::get_key(size_t pos) const
     return key;
 }
 
-uint32_t Document::get_size() const
-{
+uint32_t Document::get_size() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    switch(type)
-    {
+    switch (type) {
     case ObjectType::Map:
-    case ObjectType::Array:
-    {
+    case ObjectType::Array: {
         uint32_t byte_size, size;
         view >> byte_size >> size;
         return size;
@@ -438,13 +358,11 @@ uint32_t Document::get_size() const
     }
 }
 
-ObjectType Document::get_type() const
-{
+ObjectType Document::get_type() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
-    if(view.at_end())
-    {
+    if (view.at_end()) {
         return ObjectType::Null;
     }
 
@@ -454,16 +372,14 @@ ObjectType Document::get_type() const
     return type;
 }
 
-bitstream Document::as_bitstream() const
-{
+bitstream Document::as_bitstream() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Binary)
-    {
+    if (type != ObjectType::Binary) {
         throw json_error("Not a binary object");
     }
 
@@ -489,16 +405,14 @@ const uint8_t* Document::as_binary() const
     return view.current();
 }*/
 
-json::integer_t Document::as_integer() const
-{
+json::integer_t Document::as_integer() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Integer)
-    {
+    if (type != ObjectType::Integer) {
         throw json_error("Not an integer!");
     }
 
@@ -507,16 +421,14 @@ json::integer_t Document::as_integer() const
     return i;
 }
 
-json::float_t Document::as_float() const
-{
+json::float_t Document::as_float() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Float)
-    {
+    if (type != ObjectType::Float) {
         throw json_error("Not a float!");
     }
 
@@ -525,31 +437,24 @@ json::float_t Document::as_float() const
     return f;
 }
 
-bool Document::as_boolean() const
-{
+bool Document::as_boolean() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type == ObjectType::True)
-    {
+    if (type == ObjectType::True) {
         return true;
-    }
-    else if(type == ObjectType::False)
-    {
+    } else if (type == ObjectType::False) {
         return false;
-    }
-    else
-    {
+    } else {
         throw json_error("Not a boolean!");
     }
 }
 
 #ifdef USE_GEO
-geo::vector2d Document::as_vector2() const
-{
+geo::vector2d Document::as_vector2() const {
     bitstream view;
 
     view.assign(m_content.data(), m_content.size(), true);
@@ -557,8 +462,7 @@ geo::vector2d Document::as_vector2() const
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::Vector2)
-    {
+    if (type != ObjectType::Vector2) {
         throw json_error("Not a vector");
     }
 
@@ -570,16 +474,14 @@ geo::vector2d Document::as_vector2() const
 }
 #endif
 
-std::string Document::as_string() const
-{
+std::string Document::as_string() const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     ObjectType type;
     view >> type;
 
-    if(type != ObjectType::String)
-    {
+    if (type != ObjectType::String) {
         throw json_error("Not a string!");
     }
 
@@ -588,16 +490,14 @@ std::string Document::as_string() const
     return str;
 }
 
-Diffs Document::diff(const Document &other) const
-{
+Diffs Document::diff(const Document &other) const {
     Diffs diffs;
     DocumentDiffs runner(m_content, other.m_content);
     runner.create_diffs(diffs);
     return diffs;
 }
 
-json::Document Diff::as_document() const
-{
+json::Document Diff::as_document() const {
     bitstream bstream;
     compress(bstream, false);
 
@@ -606,20 +506,18 @@ json::Document Diff::as_document() const
 
     bstream.detach(data, len);
 
-    //NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
+    // NOLINTNEXTLINE(clang-analyzer-unix.Malloc)
     return json::Document(data, len, json::DocumentMode::ReadWrite);
 }
 
-void Diff::compress(bitstream &bstream, bool write_size) const
-{
+void Diff::compress(bitstream &bstream, bool write_size) const {
     bitstream view;
     view.assign(m_content.data(), m_content.size(), true);
 
     uint32_t size = 0;
     auto size_pos = bstream.pos();
 
-    if(write_size)
-    {
+    if (write_size) {
         bstream << size;
     }
 
@@ -629,20 +527,13 @@ void Diff::compress(bitstream &bstream, bool write_size) const
     DiffType type;
     view >> type;
 
-    if(type == DiffType::Modified)
-    {
+    if (type == DiffType::Modified) {
         writer.write_string("type", "modified");
-    }
-    else if(type == DiffType::Deleted)
-    {
+    } else if (type == DiffType::Deleted) {
         writer.write_string("type", "deleted");
-    }
-    else if(type == DiffType::Added)
-    {
+    } else if (type == DiffType::Added) {
         writer.write_string("type", "added");
-    }
-    else
-    {
+    } else {
         throw json_error("Unknown diff type");
     }
 
@@ -650,11 +541,9 @@ void Diff::compress(bitstream &bstream, bool write_size) const
     view >> path;
     writer.write_string("path", path);
 
-    if(type == DiffType::Modified || type == DiffType::Added)
-    {
+    if (type == DiffType::Modified || type == DiffType::Added) {
         auto key = "value";
-        if(type == DiffType::Modified)
-        {
+        if (type == DiffType::Modified) {
             key = "new_value";
         }
 
@@ -667,8 +556,7 @@ void Diff::compress(bitstream &bstream, bool write_size) const
 
     writer.end_map();
 
-    if(write_size)
-    {
+    if (write_size) {
         auto end = bstream.size();
         bstream.move_to(size_pos);
         size = end - (size_pos + sizeof(size));
@@ -677,37 +565,30 @@ void Diff::compress(bitstream &bstream, bool write_size) const
     }
 }
 
-String::String(const std::string &str)
-{
-    *this = str;
-}
+String::String(const std::string &str) { *this = str; }
 
-String::String(const char* string)
-{
+String::String(const char *string) {
     std::string str = string;
     *this = str;
 }
 
-String& String::operator=(const std::string &str)
-{
+String &String::operator=(const std::string &str) {
     uint32_t length = str.size();
     m_content << ObjectType::String;
     m_content << length;
-    if(length > 0)
-    {
-        m_content.write_raw_data(reinterpret_cast<const uint8_t*>(str.c_str()), length);
+    if (length > 0) {
+        m_content.write_raw_data(reinterpret_cast<const uint8_t *>(str.c_str()),
+                                 length);
     }
     m_content.move_to(0);
 
     return *this;
 }
 
-Integer::Integer(const integer_t i)
-{
+Integer::Integer(const integer_t i) {
     m_content << ObjectType::Integer;
     m_content << i;
     m_content.move_to(0);
 }
 
-
-}
+} // namespace json

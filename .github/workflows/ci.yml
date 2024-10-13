@@ -29,3 +29,5 @@ jobs:
             ninja
       - name: Lint Checks 
         run: cd build && ninja lint
+      - name: Formatting Checks 
+        run: cd build && ninja clang-format-check 

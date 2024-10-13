@@ -1,12 +1,12 @@
 #pragma once
 
-#include <stdint.h>
-#include <string>
+#include <cctype>
 #include <map>
 #include <stack>
-#include <cctype>
-#include <vector>
+#include <stdint.h>
+#include <string>
 #include <time.h>
+#include <vector>
 
 #include <ostream>
 
@@ -43,7 +43,7 @@ inline bool is_valid_key(const std::string &str)
     if(str.size() == 0)
         return false;
 
-    for(auto c: str)
+    for(auto c : str)
     {
         if(!isalnum(c) && !(c == '_'))
             return false;
@@ -52,12 +52,9 @@ inline bool is_valid_key(const std::string &str)
     return true;
 }
 
-inline bool is_keyword(const std::string &str)
-{
-    return str == "+";
-}
+inline bool is_keyword(const std::string &str) { return str == "+"; }
 
 typedef int64_t integer_t;
 typedef double float_t;
 
-}
+} // namespace json
