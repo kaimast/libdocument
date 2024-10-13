@@ -1,10 +1,10 @@
 #pragma once
 
-
-#include "json/json.h"
-
+#include <cstdint>
 #include <string>
 #include <vector>
+
+#include "json/Document.h"
 
 namespace json
 {

@@ -1,7 +1,12 @@
 #pragma once
 
 #include <string>
+#include <bitstream.h>
+
+#include "json/Document.h"
+#include "json/json_error.h"
 #include "DocumentTraversal.h"
+#include "json.h"
 
 namespace json
 {

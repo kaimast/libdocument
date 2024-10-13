@@ -1,4 +1,5 @@
 #include "Search.h"
+#include "json.h"
 
 namespace json
 {

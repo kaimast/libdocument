@@ -1,4 +1,3 @@
-#include "json/json.h"
 #include "helper.h"
 #include "DocumentMerger.h"
 #include "Search.h"
@@ -6,11 +5,10 @@
 #include "Iterator.h"
 #include "PredicateChecker.h"
 #include "Parser.h"
+#include "json.h"
 
 #include <cctype>
 #include <ctime>
-#include <list>
-#include <stack>
 
 namespace json
 {

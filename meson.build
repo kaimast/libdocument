@@ -46,8 +46,12 @@ endif
 
 subdir('test')
 
-e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], include_directories: inc_dirs, cpp_args: compile_args)
-test('libdocument-test', e)
+unit_tests_bin = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], include_directories: inc_dirs, cpp_args: compile_args)
+
+run_target(
+    'unit-tests',
+    command: unit_tests_bin,
+    depends: [unit_tests_bin])
 
 install_subdir('include/json', install_dir : 'include')
 
@@ -58,7 +62,7 @@ if clangtidy.found()
     tidy_files = cpp_files
 
     run_target(
-        'tidy',
+        'lint',
         command: [
             'scripts/clang-tidy.sh',
             clangtidy.path(),

@@ -9,8 +9,6 @@ namespace json
 
 void Printer::handle_key(const std::string &key)
 {
-    const auto& m = mode.top();
-
     if(key.empty())
     {
         if(!mode.empty())
@@ -19,7 +17,10 @@ void Printer::handle_key(const std::string &key)
         }
         return;
     }
-    else if(m == FIRST_IN_MAP)
+ 
+    const auto& m = mode.top();
+
+    if(m == FIRST_IN_MAP)
     {
         result += '"' + key + "\":";
         mode.pop();
@@ -135,7 +136,5 @@ void Printer::handle_array_end()
     result += "]";
     mode.pop();
 }
-
-
 
 }
