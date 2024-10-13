@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fstream>
+#include <iostream>
 #include <stdbitstream.h>
 
 #include "json/Diff.h"
