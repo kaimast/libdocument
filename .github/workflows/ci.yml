@@ -21,8 +21,8 @@ jobs:
       - name: Install Packages
         run: |
             sudo apt-get update
-            sudo apt-get install meson build-essential git \
-                libgtest-dev libgflags-dev clang-tidy clang
+            sudo apt-get install meson ninja-build build-essential git \
+                googletest libgtest-dev libgflags-dev clang-tidy clang
       - name: Setup Prerequisites
         run: bash scripts/setup-prereq.sh
       - name: Build libdocument 
