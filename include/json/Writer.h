@@ -4,9 +4,9 @@
 #include <geo/vector2.h>
 #endif
 
-#include "defines.h"
-#include "bitstream.h"
 #include "Document.h"
+#include "bitstream.h"
+#include "defines.h"
 
 namespace json
 {
@@ -66,6 +66,7 @@ public:
 #endif
 
     json::Document make_document();
+
 private:
     void handle_key(const std::string &key);
     void check_end();
@@ -73,11 +74,16 @@ private:
     bitstream *m_result_ptr;
     bitstream &m_result;
 
-    enum mode_t {IN_ARRAY, IN_MAP, DONE};
+    enum mode_t
+    {
+        IN_ARRAY,
+        IN_MAP,
+        DONE
+    };
 
     std::stack<mode_t> m_mode;
     std::stack<uint32_t> m_starts;
     std::stack<uint32_t> m_sizes;
 };
 
-}
+} // namespace json

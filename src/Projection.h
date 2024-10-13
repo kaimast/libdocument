@@ -4,38 +4,35 @@
 
 #include "DocumentTraversal.h"
 
-namespace json
-{
+namespace json {
 
 /**
  * Creates a new document by extracting a set of paths from an existing docment
  */
-class Projection : public DocumentTraversal
-{
-public:
-    Projection(const Document &document, const std::vector<std::string> &paths, bool write_path);
+class Projection : public DocumentTraversal {
+  public:
+    Projection(const Document &document, const std::vector<std::string> &paths,
+               bool write_path);
 
-    uint32_t do_search(bitstream &result)
-    {
+    uint32_t do_search(bitstream &result) {
         json::Writer writer(result);
 
-        if(!m_document.empty())
-        {
+        if (!m_document.empty()) {
             parse_next(writer);
         }
 
         return m_found_count;
     }
 
-private:
+  private:
     void parse_next(json::Writer &writer);
 
-private:
+  private:
     const json::Document &m_document;
 
     bitstream m_view;
-    
-    std::vector<std::string> m_target_paths; //FIXME preserve order
+
+    std::vector<std::string> m_target_paths; // FIXME preserve order
     std::vector<std::string> m_current_path;
 
     const bool m_write_path;
@@ -45,5 +42,4 @@ private:
     void parse_array(json::Writer &writer);
 };
 
-
-}
+} // namespace json

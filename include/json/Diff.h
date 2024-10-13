@@ -2,8 +2,8 @@
 
 #include <list>
 
-#include "defines.h"
 #include "bitstream.h"
+#include "defines.h"
 
 namespace json
 {
@@ -18,17 +18,12 @@ enum class DiffType : uint8_t
 class Diff
 {
 public:
-    Diff(DiffType type, const std::string& path, const uint8_t* value, uint32_t length);
+    Diff(DiffType type, const std::string &path, const uint8_t *value, uint32_t length);
     Diff(const Diff &other) = delete;
 
-    Diff(Diff &&other)
-        : m_content(std::move(other.m_content))
-    {}
+    Diff(Diff &&other) : m_content(std::move(other.m_content)) {}
 
-    const bitstream& content() const
-    {
-        return m_content;
-    }
+    const bitstream &content() const { return m_content; }
 
     json::Document as_document() const;
 
@@ -40,4 +35,4 @@ private:
 
 typedef std::list<Diff> Diffs;
 
-}
+} // namespace json

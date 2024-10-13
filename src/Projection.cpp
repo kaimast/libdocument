@@ -1,70 +1,54 @@
 #include "Projection.h"
+#include "json.h"
 
-namespace json
-{
+namespace json {
 
-Projection::Projection(const Document &document, const std::vector<std::string> &paths, bool write_path)
-    : m_document(document), m_write_path(write_path), m_found_count(0)
-{
+Projection::Projection(const Document &document,
+                       const std::vector<std::string> &paths, bool write_path)
+    : m_document(document), m_write_path(write_path), m_found_count(0) {
     m_view.assign(m_document.data().data(), m_document.data().size(), true);
 
-    for(auto &path: paths)
-    {
-        if(path.find(keyword(WILDCARD)) == std::string::npos)
-        {
+    for (auto &path : paths) {
+        if (path.find(keyword(WILDCARD)) == std::string::npos) {
             m_target_paths.push_back(path);
-        }
-        else
-        {
+        } else {
             size_t pos = 0, last_pos = 0;
             std::vector<std::string> split_path;
-            while((pos = path.find_first_of('.', last_pos)) != std::string::npos)
-            {
-                split_path.push_back(path.substr(last_pos, pos-last_pos));
-                last_pos = pos+1;
+            while ((pos = path.find_first_of('.', last_pos)) !=
+                   std::string::npos) {
+                split_path.push_back(path.substr(last_pos, pos - last_pos));
+                last_pos = pos + 1;
             }
 
-            split_path.push_back(path.substr(last_pos, pos-last_pos));
+            split_path.push_back(path.substr(last_pos, pos - last_pos));
 
             auto target_paths = path_strings(split_path, document);
 
-            for(auto &target_path: target_paths)
-            {
+            for (auto &target_path : target_paths) {
                 m_target_paths.push_back(target_path);
             }
         }
     }
 }
 
-void Projection::parse_next(json::Writer &writer)
-{
+void Projection::parse_next(json::Writer &writer) {
     auto current = path_string(m_current_path);
     bool on_path = false;
     bool on_target = false;
 
-    for(auto &target_path: m_target_paths)
-    {
+    for (auto &target_path : m_target_paths) {
         auto len = std::min(current.size(), target_path.size());
 
-        if(len == 0)
-        {
-            if(target_path.size() == len)
-            {
+        if (len == 0) {
+            if (target_path.size() == len) {
                 on_path = on_target = true;
-            }
-            else
-            {
+            } else {
                 on_path = true;
             }
-        }
-        else if(target_path.compare(0, len, current) == 0)
-        {
-            if(target_path.size() == len)
-            {
+        } else if (target_path.compare(0, len, current) == 0) {
+            if (target_path.size() == len) {
                 on_path = on_target = true;
-            }
-            else if(target_path[len] == '.')
-            {
+            } else if (target_path[len] == '.') {
                 on_path = true;
             }
         }
@@ -72,8 +56,7 @@ void Projection::parse_next(json::Writer &writer)
 
     std::string key;
 
-    if(!m_current_path.empty())
-    {
+    if (!m_current_path.empty()) {
         key = m_current_path.back();
     }
 
@@ -82,41 +65,35 @@ void Projection::parse_next(json::Writer &writer)
     ObjectType type;
     m_view >> type;
 
-    if(!on_path)
-    {
+    if (!on_path) {
         skip_next(type, m_view);
         return;
     }
 
-    if(on_target)
-    {
+    if (on_target) {
         skip_next(type, m_view);
 
         uint32_t end = m_view.pos();
 
         std::string nkey = m_write_path ? key : "";
-        writer.write_raw_data(nkey, &m_view.data()[start], end-start);
+        writer.write_raw_data(nkey, &m_view.data()[start], end - start);
 
         m_found_count += 1;
         return;
     }
 
-    switch(type)
-    {
-    case ObjectType::String:
-    {
+    switch (type) {
+    case ObjectType::String: {
         std::string str;
         m_view >> str;
         break;
     }
-    case ObjectType::Integer:
-    {
+    case ObjectType::Integer: {
         json::integer_t i;
         m_view >> i;
         break;
     }
-    case ObjectType::Float:
-    {
+    case ObjectType::Float: {
         json::float_t d;
         m_view >> d;
         break;
@@ -127,8 +104,7 @@ void Projection::parse_next(json::Writer &writer)
     case ObjectType::Array:
         parse_array(writer);
         break;
-    case ObjectType::Binary:
-    {
+    case ObjectType::Binary: {
         uint32_t len = 0;
         m_view >> len;
         m_view.move_by(len);
@@ -143,8 +119,7 @@ void Projection::parse_next(json::Writer &writer)
     }
 }
 
-void Projection::parse_map(json::Writer &writer)
-{
+void Projection::parse_map(json::Writer &writer) {
     uint32_t byte_size = 0;
     m_view >> byte_size;
 
@@ -153,13 +128,11 @@ void Projection::parse_map(json::Writer &writer)
 
     std::string key = m_current_path.empty() ? "" : m_current_path.back();
 
-    if(m_write_path)
-    {
+    if (m_write_path) {
         writer.start_map(key);
     }
 
-    for(uint32_t i = 0; i < size; ++i)
-    {
+    for (uint32_t i = 0; i < size; ++i) {
         std::string key;
         m_view >> key;
 
@@ -168,14 +141,12 @@ void Projection::parse_map(json::Writer &writer)
         m_current_path.pop_back();
     }
 
-    if(m_write_path)
-    {
+    if (m_write_path) {
         writer.end_map();
     }
 }
 
-void Projection::parse_array(json::Writer &writer)
-{
+void Projection::parse_array(json::Writer &writer) {
     uint32_t byte_size = 0;
     m_view >> byte_size;
 
@@ -184,23 +155,19 @@ void Projection::parse_array(json::Writer &writer)
 
     std::string key = m_current_path.empty() ? "" : m_current_path.back();
 
-    if(m_write_path)
-    {
+    if (m_write_path) {
         writer.start_array(key);
     }
 
-    for(uint32_t i = 0; i < size; ++i)
-    {
+    for (uint32_t i = 0; i < size; ++i) {
         m_current_path.push_back(to_string(i));
         parse_next(writer);
         m_current_path.pop_back();
     }
 
-    if(m_write_path)
-    {
+    if (m_write_path) {
         writer.end_array();
     }
 }
 
-
-}
+} // namespace json

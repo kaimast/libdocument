@@ -2,9 +2,10 @@ project('libdocument', 'cpp')
 
 inc_dirs = include_directories('include/', get_option('prefix')+'/include', '/usr/local/include')
 
-gtest = dependency('gtest')
+gflags_dep = dependency('gflags')
+gtest_dep = dependency('gtest')
 
-compile_args = ['-std=c++17', '-Wextra', '-Wno-implicit-exception-spec-mismatch', '-Werror'] # Remove me once clang issue is fixed in SGX SDK
+compile_args = ['-std=c++20', '-Wextra', '-Wno-implicit-exception-spec-mismatch', '-Werror'] # Remove me once clang issue is fixed in SGX SDK
 
 if get_option('use_geo') == true
     compile_args = compile_args + ['-DUSE_GEO']
@@ -12,7 +13,8 @@ endif
 
 subdir('src')
 
-doc = shared_library('document', cpp_files, include_directories: inc_dirs, install: true, cpp_args: compile_args)
+doc = shared_library('document', cpp_files,
+    include_directories: inc_dirs, install: true, cpp_args: compile_args)
 doc_dep = declare_dependency(link_with: doc)
 
 cpp = meson.get_compiler('cpp')
@@ -46,8 +48,14 @@ endif
 
 subdir('test')
 
-e = executable('libdocument-test', test_files, dependencies : [doc_dep, gtest], include_directories: inc_dirs, cpp_args: compile_args)
-test('libdocument-test', e)
+unit_tests_bin = executable('libdocument-test', test_files,
+    dependencies : [doc_dep, gflags_dep, gtest_dep],
+    include_directories: inc_dirs, cpp_args: compile_args)
+
+run_target(
+    'unit-tests',
+    command: unit_tests_bin,
+    depends: [unit_tests_bin])
 
 install_subdir('include/json', install_dir : 'include')
 
@@ -58,7 +66,7 @@ if clangtidy.found()
     tidy_files = cpp_files
 
     run_target(
-        'tidy',
+        'lint',
         command: [
             'scripts/clang-tidy.sh',
             clangtidy.path(),

@@ -1,16 +1,13 @@
-#include <json/json.h>
 #include <json/Document.h>
+#include <json/json.h>
 
 #include <gtest/gtest.h>
 
 using namespace json;
 
-class WriterTest : public testing::Test
-{
-};
+class WriterTest : public testing::Test {};
 
-TEST(WriterTest, empty)
-{
+TEST(WriterTest, empty) {
     Writer writer1;
     auto doc1 = writer1.make_document();
 
@@ -25,4 +22,3 @@ TEST(WriterTest, empty)
     EXPECT_TRUE(doc1.valid());
     EXPECT_TRUE(doc2.valid());
 }
-
