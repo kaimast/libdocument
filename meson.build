@@ -2,7 +2,8 @@ project('libdocument', 'cpp')
 
 inc_dirs = include_directories('include/', get_option('prefix')+'/include', '/usr/local/include')
 
-gtest = dependency('gtest')
+gflags_dep = dependency('gflags')
+gtest_dep = dependency('gtest')
 
 compile_args = ['-std=c++20', '-Wextra', '-Wno-implicit-exception-spec-mismatch', '-Werror'] # Remove me once clang issue is fixed in SGX SDK
 
@@ -48,7 +49,7 @@ endif
 subdir('test')
 
 unit_tests_bin = executable('libdocument-test', test_files,
-    dependencies : [doc_dep, gtest],
+    dependencies : [doc_dep, gflags_dep, gtest_dep],
     include_directories: inc_dirs, cpp_args: compile_args)
 
 run_target(
