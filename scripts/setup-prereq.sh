@@ -8,6 +8,6 @@ export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib
 
 echo "Building bitstream"
 cd deps/bitstream
-meson build
+meson build -Dbuildtype=$BUILDTYPE --prefix=$INSTALL_DIR
 cd build
-ninja install  -Dbuildtype=$BUILDTYPE --prefix=$INSTALL_DIR
+ninja install -v
