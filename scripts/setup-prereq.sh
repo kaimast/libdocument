@@ -9,6 +9,6 @@ export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$INSTALL_DIR/lib:$INSTALL_DIR/lib
 pushd deps
 echo "Building bitstream"
 pushd bitstream
-meson build -Dbuildtype=$BUILDTYPE --prefix=$INSTALL_DIR
+meson setup build -Dbuildtype=$BUILDTYPE --prefix=$INSTALL_DIR
 cd build
 ninja install -v
